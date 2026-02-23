@@ -3,76 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Luxe | 3D Collection</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>NEURAL CORE | 3D ARCHIVE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #1a1a1a; --bg: #ffffff; --muted: #666; }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--accent); }
-        
-        /* Hero Section */
-        header { padding: 100px 20px 60px; text-align: center; }
-        h1 { font-family: 'Playfair Display', serif; font-size: 3.5rem; margin: 0; letter-spacing: -1px; }
-        header p { color: var(--muted); font-size: 1.1rem; max-width: 600px; margin: 20px auto; line-height: 1.6; }
+        :root {
+            --glow: #00f2ff;
+            --accent: #ff00ff;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
 
-        /* Showcase Grid */
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 40px 100px; }
-        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-        
-        .product-card { background: #f9f9f9; border-radius: 4px; overflow: hidden; transition: 0.4s ease; }
-        .product-card:hover { background: #f0f0f0; }
-        
-        /* The Embed */
-        .viewer-container { width: 100%; height: 500px; position: relative; }
+        body {
+            margin: 0;
+            background: #020202;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Nebula */
+        body::before {
+            content: "";
+            position: fixed;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at center, #110022 0%, #020202 70%);
+            z-index: -1;
+            animation: rotateBg 20s linear infinite;
+        }
+
+        @keyframes rotateBg { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        header {
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        /* Animated Gradient Text */
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            margin: 0;
+            background: linear-gradient(90deg, #00f2ff, #ff00ff, #00f2ff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientText 3s linear infinite;
+        }
+
+        @keyframes gradientText { to { background-position: 200% center; } }
+
+        p { color: #aaa; letter-spacing: 2px; text-transform: uppercase; font-weight: 300; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px 100px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 40px;
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            transition: 0.5s;
+        }
+
+        .glass-card:hover {
+            border-color: var(--glow);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+            transform: scale(1.02);
+        }
+
+        .viewer-box { width: 100%; height: 450px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
         iframe { width: 100%; height: 100%; border: none; }
 
-        .product-info { padding: 30px; text-align: left; }
-        .product-info span { text-transform: uppercase; font-size: 0.75rem; letter-spacing: 2px; color: var(--muted); font-weight: 600; }
-        .product-info h2 { margin: 10px 0; font-family: 'Playfair Display', serif; font-size: 1.8rem; }
-        
-        .btn { 
-            display: inline-block; margin-top: 15px; padding: 12px 24px; 
-            border: 1px solid var(--accent); color: var(--accent); 
-            text-decoration: none; font-size: 0.8rem; font-weight: 600; 
-            text-transform: uppercase; transition: 0.3s;
-        }
-        .btn:hover { background: var(--accent); color: white; }
+        .card-content { padding: 30px; }
 
-        @media (max-width: 900px) { .product-grid { grid-template-columns: 1fr; } }
+        /* Futuristic Glass Button */
+        .glass-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: rgba(0, 242, 255, 0.1);
+            border: 1px solid var(--glow);
+            color: var(--glow);
+            text-decoration: none;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            border-radius: 50px;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-btn:hover {
+            background: var(--glow);
+            color: #000;
+            box-shadow: 0 0 20px var(--glow);
+        }
+
+        @media (max-width: 600px) { h1 { font-size: 2.5rem; } .container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
     <header>
-        <span>COLLECTION 2026</span>
-        <h1>Digital Craftsmanship</h1>
-        <p>Explore our latest furniture concepts through high-fidelity interactive 3D models. Precision engineering meets timeless design.</p>
+        <p>System Version 4.0 // 2026</p>
+        <h1>NEURAL ARCHIVE</h1>
+        <p>Interactive Asset Decryption in Progress...</p>
     </header>
 
     <div class="container">
-        <div class="product-grid">
-            
-            <div class="product-card">
-                <div class="viewer-container">
-                    <iframe src="viewer.html?model=Chair.glb"></iframe>
-                </div>
-                <div class="product-info">
-                    <span>Furniture</span>
-                    <h2>The Silhouette Chair</h2>
-                    <a href="#" class="btn">View Details</a>
-                </div>
+        <div class="glass-card">
+            <div class="viewer-box">
+                <iframe src="viewer.html?model=Chair.glb"></iframe>
             </div>
-
-            <div class="product-card">
-                <div class="viewer-container">
-                    <iframe src="viewer.html?model=Concept.glb"></iframe>
-                </div>
-                <div class="product-info">
-                    <span>Experimental</span>
-                    <h2>Minimalist Worktop</h2>
-                    <a href="#" class="btn">View Details</a>
-                </div>
+            <div class="card-content">
+                <h3 style="font-family: 'Orbitron'; margin-top: 0;">COMMANDER CHAIR</h3>
+                <p style="font-size: 0.8rem; margin-bottom: 20px;">Titanium-reinforced ergonomic frame. Neural-link compatible.</p>
+                <a href="#" class="glass-btn">INITIALIZE</a>
             </div>
+        </div>
 
+        <div class="glass-card">
+            <div class="viewer-box">
+                <iframe src="viewer.html?model=Table.glb"></iframe>
+            </div>
+            <div class="card-content">
+                <h3 style="font-family: 'Orbitron'; margin-top: 0;">CYBER DESK</h3>
+                <p style="font-size: 0.8rem; margin-bottom: 20px;">Anti-gravity core with built-in cooling systems.</p>
+                <a href="#" class="glass-btn">INITIALIZE</a>
+            </div>
         </div>
     </div>
 
