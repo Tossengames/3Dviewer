@@ -3,162 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Product Viewer</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #f4f4f4; font-family: 'Segoe UI', sans-serif; }
-        #panel { 
-            position: absolute; top: 20px; left: 20px; z-index: 10;
-            background: rgba(255,255,255,0.9); padding: 15px; 
-            border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); 
-            width: 160px; border: 1px solid #ddd;
-        }
-        button { 
-            display: block; width: 100%; margin: 8px 0; padding: 10px; 
-            cursor: pointer; border: 1px solid #eee; border-radius: 6px; 
-            background: white; transition: all 0.2s; font-weight: 500;
-        }
-        button:hover { background: #007bff; color: white; border-color: #007bff; }
-        .hidden { display: none !important; }
+        body { margin: 0; overflow: hidden; background: transparent; }
         #loader { 
-            position: absolute; bottom: 20px; right: 20px; 
-            font-size: 12px; color: #666; background: rgba(255,255,255,0.7);
-            padding: 5px 10px; border-radius: 4px; pointer-events: none;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-family: sans-serif; font-size: 10px; letter-spacing: 2px; color: #aaa; text-transform: uppercase;
         }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
+    <div id="loader">Loading...</div>
 
-<div id="loader">Status: Initializing...</div>
+    <script type="importmap">
+        { "imports": { 
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js", 
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" 
+        } }
+    </script>
 
-<div id="panel">
-    <button onclick="loadModel('Chair.glb')">Load Chair</button>
-    <button onclick="loadModel('Table.glb')">Load Table (Auto-Gen)</button>
-    <button onclick="resetCamera()">Reset View</button>
-</div>
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-<script type="importmap">
-    { "imports": { 
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js", 
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" 
-    } }
-</script>
+        let scene, camera, renderer, controls, currentModel;
+        const loader = new GLTFLoader();
+        const params = new URLSearchParams(window.location.search);
+        const modelToLoad = params.get('model') || 'Chair.glb';
 
-<script type="module">
-    import * as THREE from 'three';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        init();
+        loadModel(modelToLoad);
 
-    let scene, camera, renderer, controls, currentModel;
-    const loader = new GLTFLoader();
+        function init() {
+            scene = new THREE.Scene();
+            // Use a very light grey for a professional "studio" look
+            scene.background = new THREE.Color(0xf9f9f9);
 
-    // Configuration
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('hideUI')) document.getElementById('panel').classList.add('hidden');
+            camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 5000);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            document.body.appendChild(renderer.domElement);
 
-    init();
-    loadModel(params.get('model') || 'Chair.glb');
-    animate();
+            // Studio Lighting
+            scene.add(new THREE.HemisphereLight(0xffffff, 0xbbbbbb, 1));
+            const sun = new THREE.DirectionalLight(0xffffff, 2);
+            sun.position.set(5, 10, 5);
+            sun.castShadow = true;
+            scene.add(sun);
 
-    function init() {
-        scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xf4f4f4);
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.0;
+            controls.enablePan = false; // Keep it clean for embeds
 
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 10000);
-        camera.position.set(5, 5, 5);
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
 
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
-        document.body.appendChild(renderer.domElement);
+        function loadModel(name) {
+            loader.load(`./models/${name}`, 
+                (gltf) => {
+                    setupModel(gltf.scene);
+                }, 
+                undefined, 
+                () => {
+                    console.warn("Generating automatic fallback model...");
+                    setupModel(createTableFallback());
+                }
+            );
+        }
 
-        // Lighting
-        scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.5));
-        const dirLight = new THREE.DirectionalLight(0xffffff, 2);
-        dirLight.position.set(5, 10, 7.5);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
+        function createTableFallback() {
+            const group = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: 0x333333 });
+            const top = new THREE.Mesh(new THREE.BoxGeometry(2, 0.1, 1.2), mat);
+            top.position.y = 1;
+            group.add(top);
+            const leg = new THREE.BoxGeometry(0.1, 1, 0.1);
+            [[0.9, 0.5, 0.5], [-0.9, 0.5, 0.5], [0.9, 0.5, -0.5], [-0.9, 0.5, -0.5]].forEach(p => {
+                const l = new THREE.Mesh(leg, mat); l.position.set(...p); group.add(l);
+            });
+            return group;
+        }
 
-        // Controls
-        controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        
-        window.addEventListener('resize', onWindowResize);
-    }
+        function setupModel(obj) {
+            if (currentModel) scene.remove(currentModel);
+            currentModel = obj;
+            scene.add(obj);
 
-    // GENERATE MODEL FROM CODE IF .GLB IS MISSING
-    function createFallbackModel() {
-        const group = new THREE.Group();
-        const material = new THREE.MeshStandardMaterial({ color: 0x8B4513 });
-        const top = new THREE.Mesh(new THREE.BoxGeometry(2, 0.1, 1.5), material);
-        top.position.y = 1;
-        group.add(top);
-        const legGeo = new THREE.BoxGeometry(0.1, 1, 0.1);
-        [[0.9, 0.5, 0.6], [-0.9, 0.5, 0.6], [0.9, 0.5, -0.6], [-0.9, 0.5, -0.6]].forEach(p => {
-            const leg = new THREE.Mesh(legGeo, material);
-            leg.position.set(...p);
-            group.add(leg);
-        });
-        return group;
-    }
+            const box = new THREE.Box3().setFromObject(obj);
+            const center = box.getCenter(new THREE.Vector3());
+            obj.position.sub(center); // Center geometry
 
-    window.loadModel = function(name) {
-        if (currentModel) scene.remove(currentModel);
-        document.getElementById('loader').innerText = `Loading: ${name}`;
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const dist = maxDim / (2 * Math.tan(Math.PI * camera.fov / 360));
+            camera.position.set(dist * 1.5, dist, dist * 1.5);
+            controls.update();
+            document.getElementById('loader').classList.add('hidden');
+        }
 
-        loader.load(`./models/${name}`, 
-            (gltf) => {
-                currentModel = gltf.scene;
-                setupModel(currentModel);
-                document.getElementById('loader').innerText = `Loaded: ${name}`;
-            }, 
-            undefined, 
-            () => {
-                console.warn("File not found. Generating fallback.");
-                currentModel = createFallbackModel();
-                setupModel(currentModel);
-                document.getElementById('loader').innerText = `Auto-Generated Fallback (File not found)`;
-            }
-        );
-    }
-
-    function setupModel(obj) {
-        scene.add(obj);
-        // Center the object
-        const box = new THREE.Box3().setFromObject(obj);
-        const center = box.getCenter(new THREE.Vector3());
-        obj.position.sub(center);
-        
-        // Auto-Frame camera so big models fit
-        fitCamera(obj);
-    }
-
-    function fitCamera(obj) {
-        const box = new THREE.Box3().setFromObject(obj);
-        const size = box.getSize(new THREE.Vector3());
-        const maxDim = Math.max(size.x, size.y, size.z);
-        const fov = camera.fov * (Math.PI / 180);
-        let dist = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-        
-        dist *= 1.8; // Camera distance multiplier
-        camera.position.set(dist, dist / 1.5, dist);
-        camera.lookAt(0, 0, 0);
-        controls.target.set(0, 0, 0);
-        controls.update();
-    }
-
-    window.resetCamera = () => fitCamera(currentModel);
-
-    function onWindowResize() {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    function animate() {
-        requestAnimationFrame(animate);
-        controls.update();
-        renderer.render(scene, camera);
-    }
-</script>
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
 </body>
 </html>
