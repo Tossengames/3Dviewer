@@ -1,118 +1,419 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { margin: 0; overflow: hidden; background: #050505; }
-        #loader { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-family: sans-serif; font-size: 10px; letter-spacing: 4px; 
-            color: #00f2ff; text-transform: uppercase; text-shadow: 0 0 10px #00f2ff;
-            z-index: 20;
-        }
-        .hidden { display: none !important; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a0f; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; display: flex; }
+
+    #canvas-container {
+      flex: 1;
+      position: relative;
+    }
+    canvas { display: block; }
+
+    /* Panel */
+    #panel {
+      width: 220px;
+      background: rgba(12,12,20,0.95);
+      border-left: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+      gap: 8px;
+      overflow-y: auto;
+    }
+    #panel.hidden { display: none; }
+
+    .panel-title {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 8px;
+    }
+
+    .model-btn {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.7);
+      padding: 12px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      text-align: left;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .model-btn:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border-color: rgba(255,255,255,0.15);
+    }
+    .model-btn.active {
+      background: rgba(180,140,90,0.15);
+      border-color: rgba(180,140,90,0.4);
+      color: #c8a96e;
+    }
+    .model-btn .icon { font-size: 18px; }
+
+    /* Loading overlay */
+    #loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(10,10,15,0.85);
+      z-index: 10;
+      gap: 16px;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+    #loading.hidden { opacity: 0; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 2px solid rgba(200,169,110,0.2);
+      border-top-color: #c8a96e;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading p { color: rgba(255,255,255,0.4); font-size: 13px; letter-spacing: 0.1em; }
+
+    /* Model name tag */
+    #model-name {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      color: rgba(255,255,255,0.25);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
-    <div id="loader">Scanning Model...</div>
 
-    <script type="importmap">
-        { "imports": { 
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js", 
-            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" 
-        } }
-    </script>
+<div id="canvas-container">
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>Loading model…</p>
+  </div>
+  <div id="model-name"></div>
+</div>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+<div id="panel">
+  <div class="panel-title">Models</div>
+  <button class="model-btn" data-model="bed1.glb"><span class="icon">🛏</span> Bed</button>
+  <button class="model-btn" data-model="chair.glb"><span class="icon">🪑</span> Chair</button>
+  <button class="model-btn" data-model="table.glb"><span class="icon">🪵</span> Table</button>
+  <button class="model-btn" data-model="sofa.glb"><span class="icon">🛋</span> Sofa</button>
+  <button class="model-btn" data-model="default.glb"><span class="icon">📦</span> Default</button>
+</div>
 
-        let scene, camera, renderer, controls, currentModel;
-        const loader = new GLTFLoader();
-        const params = new URLSearchParams(window.location.search);
-        const modelToLoad = params.get('model') || 'bed1.glb';
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js"
+  }
+}
+</script>
+<script type="module">
+  // Three.js r128 from CDN – use classic script tags for compat
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// We'll use the global THREE from the classic script
+// GLTFLoader via CDN
+const GLTF_LOADER_URL = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
+const ORBIT_URL = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js';
 
-        init();
-        loadModel(modelToLoad);
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload = res;
+    s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
 
-        function init() {
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x050505);
+async function init() {
+  await loadScript(GLTF_LOADER_URL);
+  await loadScript(ORBIT_URL);
 
-            // Digital Grid Floor
-            const grid = new THREE.GridHelper(20, 40, 0x00f2ff, 0x111111);
-            grid.material.opacity = 0.15;
-            grid.material.transparent = true;
-            scene.add(grid);
+  const params = new URLSearchParams(location.search);
+  const embedModel = params.get('model');
+  const embedMode = params.get('embed') === '1';
 
-            camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 5000);
-            
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
+  if (embedMode) {
+    document.getElementById('panel').classList.add('hidden');
+  }
 
-            // Cyberpunk Lighting
-            scene.add(new THREE.HemisphereLight(0x444444, 0x000000, 2));
-            const p1 = new THREE.PointLight(0x00f2ff, 50); p1.position.set(5, 5, 5); scene.add(p1);
-            const p2 = new THREE.PointLight(0xff00ff, 30); p2.position.set(-5, 5, -5); scene.add(p2);
+  const container = document.getElementById('canvas-container');
+  const W = () => container.clientWidth;
+  const H = () => container.clientHeight;
 
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.autoRotate = true;
-            controls.autoRotateSpeed = 0.5;
+  // Renderer
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(W(), H());
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
+  container.appendChild(renderer.domElement);
 
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-        }
+  // Scene
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0a0f);
+  scene.fog = new THREE.Fog(0x0a0a0f, 15, 40);
 
-        function loadModel(name) {
-            loader.load(`./models/${name}`, 
-                (gltf) => { setupModel(gltf.scene); }, 
-                undefined, 
-                () => { setupModel(createFallback()); }
-            );
-        }
+  // Camera
+  const camera = new THREE.PerspectiveCamera(45, W() / H(), 0.01, 100);
+  camera.position.set(3, 2, 4);
 
-        function createFallback() {
-            const group = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({ color: 0x333333, emissive: 0x00f2ff, emissiveIntensity: 0.1 });
-            const top = new THREE.Mesh(new THREE.BoxGeometry(2, 0.2, 1.5), mat);
-            top.position.y = 0.5;
-            group.add(top);
-            return group;
-        }
+  // Controls
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.6;
+  controls.minDistance = 0.5;
+  controls.maxDistance = 20;
+  controls.maxPolarAngle = Math.PI / 2 + 0.1;
 
-        function setupModel(obj) {
-            if (currentModel) scene.remove(currentModel);
-            currentModel = obj;
-            scene.add(obj);
+  // Lighting
+  const hemi = new THREE.HemisphereLight(0x334466, 0x1a1008, 0.8);
+  scene.add(hemi);
 
-            // Auto-Frame Camera
-            const box = new THREE.Box3().setFromObject(obj);
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3());
-            obj.position.sub(center); 
+  const dirLight = new THREE.DirectionalLight(0xfff4e0, 2.5);
+  dirLight.position.set(5, 10, 7);
+  dirLight.castShadow = true;
+  dirLight.shadow.mapSize.set(2048, 2048);
+  dirLight.shadow.camera.near = 0.1;
+  dirLight.shadow.camera.far = 50;
+  dirLight.shadow.camera.left = dirLight.shadow.camera.bottom = -8;
+  dirLight.shadow.camera.right = dirLight.shadow.camera.top = 8;
+  dirLight.shadow.bias = -0.001;
+  scene.add(dirLight);
 
-            const maxDim = Math.max(size.x, size.y, size.z);
-            const dist = maxDim / (2 * Math.tan(Math.PI * camera.fov / 360));
-            camera.position.set(dist * 1.4, dist * 0.8, dist * 1.4);
-            controls.target.set(0, 0, 0);
-            controls.update();
-            document.getElementById('loader').classList.add('hidden');
-        }
+  const fillLight = new THREE.PointLight(0x4466aa, 0.6, 20);
+  fillLight.position.set(-5, 3, -3);
+  scene.add(fillLight);
 
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-    </script>
+  // Ground plane
+  const groundGeo = new THREE.PlaneGeometry(30, 30);
+  const groundMat = new THREE.MeshStandardMaterial({
+    color: 0x111118,
+    roughness: 0.9,
+    metalness: 0.1
+  });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // Grid
+  const grid = new THREE.GridHelper(20, 40, 0x222230, 0x16161e);
+  grid.position.y = 0.001;
+  scene.add(grid);
+
+  // GLTFLoader
+  const loader = new THREE.GLTFLoader();
+  let currentModel = null;
+
+  function showLoading(show) {
+    const el = document.getElementById('loading');
+    if (show) el.classList.remove('hidden');
+    else el.classList.add('hidden');
+  }
+
+  function setModelName(name) {
+    document.getElementById('model-name').textContent = name.replace('.glb', '');
+  }
+
+  function loadModel(filename) {
+    showLoading(true);
+    if (currentModel) {
+      scene.remove(currentModel);
+      currentModel = null;
+    }
+
+    const tryLoad = (path) => new Promise((resolve, reject) => {
+      loader.load(
+        path,
+        gltf => resolve(gltf),
+        undefined,
+        err => reject(err)
+      );
+    });
+
+    const attempt = (paths, idx = 0) => {
+      if (idx >= paths.length) {
+        console.warn('All model paths failed, using procedural fallback');
+        showLoading(false);
+        loadProceduralFallback(filename);
+        return;
+      }
+      tryLoad(paths[idx])
+        .then(gltf => {
+          const model = gltf.scene;
+          model.traverse(child => {
+            if (child.isMesh) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+            }
+          });
+
+          // Center + fit
+          const box = new THREE.Box3().setFromObject(model);
+          const center = box.getCenter(new THREE.Vector3());
+          const size = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const scale = 2 / maxDim;
+          model.scale.setScalar(scale);
+          model.position.sub(center.multiplyScalar(scale));
+          const boxAfter = new THREE.Box3().setFromObject(model);
+          model.position.y -= boxAfter.min.y;
+
+          scene.add(model);
+          currentModel = model;
+
+          camera.position.set(3, 2, 4);
+          controls.target.set(0, size.y * scale * 0.4, 0);
+          controls.update();
+          setModelName(filename);
+          showLoading(false);
+        })
+        .catch(() => attempt(paths, idx + 1));
+    };
+
+    attempt([`models/${filename}`, `models/default.glb`]);
+  }
+
+  function loadProceduralFallback(filename) {
+    // Generate a simple procedural mesh based on the model name
+    let geometry, color;
+    const name = filename.toLowerCase();
+
+    if (name.includes('table')) {
+      // Table: top slab + 4 legs
+      const group = new THREE.Group();
+      const topGeo = new THREE.BoxGeometry(2, 0.08, 1);
+      const topMat = new THREE.MeshStandardMaterial({ color: 0x8B5E3C, roughness: 0.7, metalness: 0.05 });
+      const top = new THREE.Mesh(topGeo, topMat);
+      top.position.y = 0.76;
+      top.castShadow = top.receiveShadow = true;
+      group.add(top);
+      const legMat = new THREE.MeshStandardMaterial({ color: 0x5C3A1E, roughness: 0.8 });
+      [[-0.85, -0.4], [-0.85, 0.4], [0.85, -0.4], [0.85, 0.4]].forEach(([x, z]) => {
+        const legGeo = new THREE.BoxGeometry(0.06, 0.74, 0.06);
+        const leg = new THREE.Mesh(legGeo, legMat);
+        leg.position.set(x, 0.37, z);
+        leg.castShadow = true;
+        group.add(leg);
+      });
+      scene.add(group);
+      currentModel = group;
+    } else if (name.includes('chair')) {
+      const group = new THREE.Group();
+      const mat = new THREE.MeshStandardMaterial({ color: 0x6B4C2A, roughness: 0.75 });
+      // seat
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.06, 0.6), mat);
+      seat.position.y = 0.46; seat.castShadow = seat.receiveShadow = true; group.add(seat);
+      // back
+      const back = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.7, 0.05), mat);
+      back.position.set(0, 0.84, -0.275); back.castShadow = true; group.add(back);
+      // legs
+      [[-0.25,-0.25],[0.25,-0.25],[-0.25,0.25],[0.25,0.25]].forEach(([x,z]) => {
+        const l = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.44, 0.05), mat);
+        l.position.set(x, 0.22, z); l.castShadow = true; group.add(l);
+      });
+      scene.add(group); currentModel = group;
+    } else if (name.includes('bed')) {
+      const group = new THREE.Group();
+      const mat = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.8 });
+      const frameMat = new THREE.MeshStandardMaterial({ color: 0x5C2D0A, roughness: 0.9 });
+      // base
+      const base = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.25, 2.2), mat);
+      base.position.y = 0.25; base.castShadow = base.receiveShadow = true; group.add(base);
+      // mattress
+      const mattress = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.22, 2.0), new THREE.MeshStandardMaterial({color:0xf0e8dc, roughness:0.95}));
+      mattress.position.y = 0.49; mattress.receiveShadow = true; group.add(mattress);
+      // headboard
+      const head = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.9, 0.1), frameMat);
+      head.position.set(0, 0.7, -1.05); head.castShadow = true; group.add(head);
+      scene.add(group); currentModel = group;
+    } else if (name.includes('sofa')) {
+      const group = new THREE.Group();
+      const mat = new THREE.MeshStandardMaterial({ color: 0x556688, roughness: 0.9 });
+      const base = new THREE.Mesh(new THREE.BoxGeometry(2, 0.4, 0.8), mat);
+      base.position.y = 0.2; base.castShadow = base.receiveShadow = true; group.add(base);
+      const back = new THREE.Mesh(new THREE.BoxGeometry(2, 0.6, 0.15), mat);
+      back.position.set(0, 0.7, -0.32); back.castShadow = true; group.add(back);
+      [-0.9, 0.9].forEach(x => {
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.5, 0.8), mat);
+        arm.position.set(x, 0.45, 0); arm.castShadow = true; group.add(arm);
+      });
+      scene.add(group); currentModel = group;
+    } else {
+      // generic box
+      const geo = new THREE.BoxGeometry(1, 1, 1);
+      const mat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.6, metalness: 0.3 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.y = 0.5; mesh.castShadow = mesh.receiveShadow = true;
+      scene.add(mesh); currentModel = mesh;
+    }
+
+    camera.position.set(3, 2, 4);
+    controls.target.set(0, 0.5, 0);
+    controls.update();
+    setModelName(filename);
+    showLoading(false);
+  }
+
+  // Panel buttons
+  document.querySelectorAll('.model-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadModel(btn.dataset.model);
+    });
+  });
+
+  // Initial model
+  const initialModel = embedModel || 'default.glb';
+  loadModel(initialModel);
+  const activeBtn = document.querySelector(`.model-btn[data-model="${initialModel}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  // Resize
+  window.addEventListener('resize', () => {
+    camera.aspect = W() / H();
+    camera.updateProjectionMatrix();
+    renderer.setSize(W(), H());
+  });
+
+  // Animate
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate();
+}
+
+init();
+</script>
 </body>
 </html>
