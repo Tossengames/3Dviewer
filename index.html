@@ -1,46 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Product Viewer</title>
-<link rel="stylesheet" href="style.css">
-<style>
-body { margin:0; font-family:sans-serif; background:#f8f8f8; }
-.hero { text-align:center; padding:40px 20px; }
-#viewer-container { width:100%; height:500px; position:relative; }
-#panel { position:absolute; top:10px; left:10px; background:rgba(255,255,255,0.9); padding:10px; border-radius:8px; max-width:200px; display:none; z-index:5; }
-#panel button { width:100%; margin:5px 0; }
-#togglePanel { position:absolute; top:10px; right:10px; z-index:10; padding:8px 12px; background:#007bff; color:#fff; border:none; border-radius:5px; cursor:pointer; display:none; }
-section { padding:20px; max-width:900px; margin:auto; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Catalog | Home</title>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 60px 20px; background: #fff; color: #1a1a1a; }
+        .header { text-align: center; max-width: 600px; margin: 0 auto 60px; }
+        h1 { font-size: 2.5rem; letter-spacing: -1px; margin-bottom: 10px; }
+        p { color: #666; font-size: 1.1rem; }
+        
+        .showcase { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); 
+            gap: 30px; 
+            max-width: 1100px; 
+            margin: 0 auto; 
+        }
+        
+        .product-card { 
+            border: 1px solid #eee; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            transition: transform 0.3s ease;
+            background: #fafafa;
+        }
+        .product-card:hover { transform: translateY(-5px); }
+        
+        iframe { width: 100%; height: 400px; border: none; display: block; }
+        
+        .details { padding: 25px; background: white; border-top: 1px solid #eee; }
+        .details h2 { margin: 0; font-size: 1.25rem; }
+        .details span { color: #007bff; font-weight: 600; font-size: 0.9rem; text-transform: uppercase; }
+
+        .full-view-btn { 
+            display: block; width: fit-content; margin: 50px auto; 
+            padding: 15px 30px; background: #1a1a1a; color: white; 
+            text-decoration: none; border-radius: 50px; font-weight: 500;
+        }
+    </style>
 </head>
 <body>
 
-<section class="hero">
-  <h1>Show Your Products in 3D</h1>
-  <p>Rotate and inspect products in 3D — helping customers decide faster and reducing returns.</p>
-</section>
+    <div class="header">
+        <h1>Interactive Interiors</h1>
+        <p>Embedded 3D previews. Built with Three.js for seamless product exploration.</p>
+    </div>
 
-<section id="demo">
-  <h2>3D Viewer Demo</h2>
-  <div id="viewer-container"></div>
-  <button id="togglePanel">Models</button>
-  <div id="panel"></div>
-</section>
+    <div class="showcase">
+        <div class="product-card">
+            <iframe src="viewer.html?model=chair.glb&hideUI=true"></iframe>
+            <div class="details">
+                <span>Office Essentials</span>
+                <h2>Executive Mesh Chair</h2>
+            </div>
+        </div>
 
-<section class="pricing">
-  <h2>Pricing & Services</h2>
-  <ul>
-    <li><strong>Viewer subscription:</strong> $15/month per store — embed unlimited products</li>
-    <li><strong>3D Model creation:</strong> Optional, starting at $50 per product</li>
-  </ul>
-</section>
+        <div class="product-card">
+            <iframe src="viewer.html?model=default.glb&hideUI=true"></iframe>
+            <div class="details">
+                <span>New Arrival</span>
+                <h2>Base Concept Model</h2>
+            </div>
+        </div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.156.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.156.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.156.0/examples/js/controls/OrbitControls.js"></script>
-<script src="viewer.js"></script>
+    <a href="viewer.html" class="full-view-btn">Launch Full Studio Viewer</a>
 
 </body>
 </html>
