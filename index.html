@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Product Viewer</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body { margin:0; font-family:sans-serif; }
+#viewer-container { width:100%; height:500px; }
+#panel { position:absolute; top:10px; left:10px; background:rgba(255,255,255,0.9); padding:10px; border-radius:8px; max-width:200px; display:none; z-index:5; }
+#panel button { width:100%; margin:5px 0; }
+#togglePanel { position:absolute; top:10px; right:10px; z-index:10; padding:8px 12px; background:#007bff; color:#fff; border:none; border-radius:5px; cursor:pointer; display:none; }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <h1>Show Your Products in 3D</h1>
+  <p>Rotate and inspect products in 3D — helping customers decide faster.</p>
+</section>
+
+<section id="demo">
+  <h2>3D Viewer Demo</h2>
+  <div id="viewer-container"></div>
+  <button id="togglePanel">Models</button>
+  <div id="panel"></div>
+</section>
+
+<section class="pricing">
+  <h2>Pricing & Services</h2>
+  <ul>
+    <li><strong>Viewer subscription:</strong> $15/month per store — embed unlimited products</li>
+    <li><strong>3D Model creation:</strong> Optional, starting at $50 per product</li>
+  </ul>
+</section>
+
+<script src="viewer.js"></script>
+</body>
+</html>
