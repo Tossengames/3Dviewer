@@ -3,67 +3,139 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3D Viewer</title>
+  <title>3D Studio Viewer</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0a0a0f; font-family: 'Segoe UI', sans-serif; overflow: hidden; height: 100vh; display: flex; }
+
+    body {
+      background: #f2ede8;
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #topbar {
+      height: 52px;
+      background: #fff;
+      border-bottom: 1px solid #e5e0d8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+    #topbar.hidden { display: none; }
+
+    .topbar-logo {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #1a1a1a;
+    }
+    .topbar-hint {
+      font-size: 11px;
+      color: #bbb;
+      letter-spacing: 0.05em;
+    }
+
+    #main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      min-height: 0;
+    }
 
     #canvas-container {
       flex: 1;
       position: relative;
+      min-width: 0;
     }
     canvas { display: block; }
 
-    /* Panel */
+    /* Side panel */
     #panel {
-      width: 220px;
-      background: rgba(12,12,20,0.95);
-      border-left: 1px solid rgba(255,255,255,0.06);
+      width: 200px;
+      background: #fff;
+      border-left: 1px solid #e5e0d8;
       display: flex;
       flex-direction: column;
-      padding: 24px 16px;
-      gap: 8px;
       overflow-y: auto;
+      flex-shrink: 0;
     }
     #panel.hidden { display: none; }
 
+    .panel-head {
+      padding: 18px 16px 12px;
+      border-bottom: 1px solid #f0ebe4;
+    }
     .panel-title {
       font-size: 10px;
-      letter-spacing: 0.2em;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.3);
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      margin-bottom: 8px;
+      color: #aaa;
+      font-weight: 500;
+    }
+    .panel-items {
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .model-btn {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.07);
-      color: rgba(255,255,255,0.7);
-      padding: 12px 14px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: #555;
+      padding: 10px 12px;
       border-radius: 8px;
       cursor: pointer;
       font-size: 13px;
       text-align: left;
-      transition: all 0.2s;
+      transition: all 0.18s;
       display: flex;
       align-items: center;
       gap: 10px;
+      font-family: inherit;
     }
-    .model-btn:hover {
-      background: rgba(255,255,255,0.08);
-      color: #fff;
-      border-color: rgba(255,255,255,0.15);
-    }
-    .model-btn.active {
-      background: rgba(180,140,90,0.15);
-      border-color: rgba(180,140,90,0.4);
-      color: #c8a96e;
-    }
-    .model-btn .icon { font-size: 18px; }
+    .model-btn:hover { background: #f7f3ee; border-color: #e8e2d8; color: #1a1a1a; }
+    .model-btn.active { background: #fdf6ec; border-color: #d4a96a; color: #9a6c30; font-weight: 500; }
+    .model-btn .icon { font-size: 17px; }
 
-    /* Loading overlay */
+    /* Mobile pill bar */
+    #mobile-panel {
+      display: none;
+      background: #fff;
+      border-top: 1px solid #e5e0d8;
+      padding: 10px 14px;
+      overflow-x: auto;
+      gap: 8px;
+      flex-shrink: 0;
+      -webkit-overflow-scrolling: touch;
+    }
+    #mobile-panel.panel-hidden { display: none !important; }
+
+    .mobile-btn {
+      background: #f7f3ee;
+      border: 1px solid #e8e2d8;
+      color: #555;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+      flex-shrink: 0;
+      transition: all 0.18s;
+    }
+    .mobile-btn.active { background: #fdf6ec; border-color: #d4a96a; color: #9a6c30; font-weight: 500; }
+
+    /* Loading */
     #loading {
       position: absolute;
       inset: 0;
@@ -71,92 +143,114 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(10,10,15,0.85);
+      background: rgba(242,237,232,0.9);
       z-index: 10;
-      gap: 16px;
-      pointer-events: none;
-      transition: opacity 0.4s;
+      gap: 14px;
+      transition: opacity 0.35s;
     }
-    #loading.hidden { opacity: 0; }
+    #loading.hidden { opacity: 0; pointer-events: none; }
+
     .spinner {
-      width: 40px; height: 40px;
-      border: 2px solid rgba(200,169,110,0.2);
-      border-top-color: #c8a96e;
+      width: 36px; height: 36px;
+      border: 2px solid rgba(180,130,60,0.2);
+      border-top-color: #c8903a;
       border-radius: 50%;
-      animation: spin 0.9s linear infinite;
+      animation: spin 0.85s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #loading p { color: rgba(255,255,255,0.4); font-size: 13px; letter-spacing: 0.1em; }
+    #loading p { color: #aaa; font-size: 12px; letter-spacing: 0.1em; }
 
-    /* Model name tag */
     #model-name {
       position: absolute;
-      bottom: 24px;
-      left: 24px;
-      color: rgba(255,255,255,0.25);
+      bottom: 16px;
+      left: 16px;
+      color: rgba(80,55,30,0.35);
       font-size: 11px;
       letter-spacing: 0.15em;
       text-transform: uppercase;
       pointer-events: none;
+      font-weight: 500;
+    }
+    #controls-hint {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      color: rgba(80,55,30,0.3);
+      font-size: 10px;
+      letter-spacing: 0.07em;
+      pointer-events: none;
+      text-align: right;
+      line-height: 1.7;
+    }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      #panel { display: none !important; }
+      #mobile-panel { display: flex !important; }
+      #controls-hint { display: none; }
+      .topbar-hint { display: none; }
     }
   </style>
 </head>
 <body>
 
-<div id="canvas-container">
-  <div id="loading">
-    <div class="spinner"></div>
-    <p>Loading model…</p>
+<div id="topbar">
+  <span class="topbar-logo">FORM Studio</span>
+  <span class="topbar-hint">Drag to rotate &nbsp;·&nbsp; Scroll to zoom</span>
+</div>
+
+<div id="main">
+  <div id="canvas-container">
+    <div id="loading"><div class="spinner"></div><p>Loading…</p></div>
+    <div id="model-name"></div>
+    <div id="controls-hint">Drag · Rotate<br>Scroll · Zoom</div>
   </div>
-  <div id="model-name"></div>
+
+  <div id="panel">
+    <div class="panel-head"><div class="panel-title">Models</div></div>
+    <div class="panel-items">
+      <button class="model-btn" data-model="bed1.glb"><span class="icon">🛏</span> Bed</button>
+      <button class="model-btn" data-model="chair.glb"><span class="icon">🪑</span> Chair</button>
+      <button class="model-btn" data-model="table.glb"><span class="icon">🪵</span> Table</button>
+      <button class="model-btn" data-model="sofa.glb"><span class="icon">🛋</span> Sofa</button>
+      <button class="model-btn" data-model="default.glb"><span class="icon">📦</span> Default</button>
+    </div>
+  </div>
 </div>
 
-<div id="panel">
-  <div class="panel-title">Models</div>
-  <button class="model-btn" data-model="bed1.glb"><span class="icon">🛏</span> Bed</button>
-  <button class="model-btn" data-model="chair.glb"><span class="icon">🪑</span> Chair</button>
-  <button class="model-btn" data-model="table.glb"><span class="icon">🪵</span> Table</button>
-  <button class="model-btn" data-model="sofa.glb"><span class="icon">🛋</span> Sofa</button>
-  <button class="model-btn" data-model="default.glb"><span class="icon">📦</span> Default</button>
+<div id="mobile-panel">
+  <button class="mobile-btn" data-model="bed1.glb">🛏 Bed</button>
+  <button class="mobile-btn" data-model="chair.glb">🪑 Chair</button>
+  <button class="mobile-btn" data-model="table.glb">🪵 Table</button>
+  <button class="mobile-btn" data-model="sofa.glb">🛋 Sofa</button>
+  <button class="mobile-btn" data-model="default.glb">📦 Default</button>
 </div>
 
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js"
-  }
-}
-</script>
-<script type="module">
-  // Three.js r128 from CDN – use classic script tags for compat
-</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// We'll use the global THREE from the classic script
-// GLTFLoader via CDN
-const GLTF_LOADER_URL = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
+const GLTF_URL  = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js';
 const ORBIT_URL = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js';
 
 function loadScript(src) {
   return new Promise((res, rej) => {
     const s = document.createElement('script');
-    s.src = src;
-    s.onload = res;
-    s.onerror = rej;
+    s.src = src; s.onload = res; s.onerror = rej;
     document.head.appendChild(s);
   });
 }
 
 async function init() {
-  await loadScript(GLTF_LOADER_URL);
+  await loadScript(GLTF_URL);
   await loadScript(ORBIT_URL);
 
-  const params = new URLSearchParams(location.search);
+  const params     = new URLSearchParams(location.search);
   const embedModel = params.get('model');
-  const embedMode = params.get('embed') === '1';
+  const embedMode  = params.get('embed') === '1';
 
   if (embedMode) {
     document.getElementById('panel').classList.add('hidden');
+    document.getElementById('mobile-panel').classList.add('panel-hidden');
+    document.getElementById('topbar').classList.add('hidden');
   }
 
   const container = document.getElementById('canvas-container');
@@ -164,253 +258,207 @@ async function init() {
   const H = () => container.clientHeight;
 
   // Renderer
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-  renderer.setPixelRatio(window.devicePixelRatio);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(W(), H());
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+  renderer.toneMappingExposure = 1.6;
   container.appendChild(renderer.domElement);
 
-  // Scene
+  // Scene — warm light background
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0a0a0f);
-  scene.fog = new THREE.Fog(0x0a0a0f, 15, 40);
+  scene.background = new THREE.Color(0xf2ede8);
+  scene.fog = new THREE.FogExp2(0xf2ede8, 0.03);
 
   // Camera
-  const camera = new THREE.PerspectiveCamera(45, W() / H(), 0.01, 100);
-  camera.position.set(3, 2, 4);
+  const camera = new THREE.PerspectiveCamera(40, W() / H(), 0.01, 200);
+  camera.position.set(3.5, 2, 4.5);
 
   // Controls
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
+  controls.dampingFactor = 0.06;
   controls.autoRotate = true;
-  controls.autoRotateSpeed = 0.6;
+  controls.autoRotateSpeed = 0.5;
   controls.minDistance = 0.5;
-  controls.maxDistance = 20;
-  controls.maxPolarAngle = Math.PI / 2 + 0.1;
+  controls.maxDistance = 25;
+  controls.maxPolarAngle = Math.PI / 2 + 0.05;
 
-  // Lighting
-  const hemi = new THREE.HemisphereLight(0x334466, 0x1a1008, 0.8);
-  scene.add(hemi);
+  // Lighting — bright, warm studio
+  scene.add(new THREE.AmbientLight(0xfff8f0, 1.4));
+  scene.add(new THREE.HemisphereLight(0xffecd2, 0xd4c9b0, 1.1));
 
-  const dirLight = new THREE.DirectionalLight(0xfff4e0, 2.5);
-  dirLight.position.set(5, 10, 7);
-  dirLight.castShadow = true;
-  dirLight.shadow.mapSize.set(2048, 2048);
-  dirLight.shadow.camera.near = 0.1;
-  dirLight.shadow.camera.far = 50;
-  dirLight.shadow.camera.left = dirLight.shadow.camera.bottom = -8;
-  dirLight.shadow.camera.right = dirLight.shadow.camera.top = 8;
-  dirLight.shadow.bias = -0.001;
-  scene.add(dirLight);
+  const sun = new THREE.DirectionalLight(0xfff5e0, 2.6);
+  sun.position.set(6, 12, 8);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.camera.near = 0.5; sun.shadow.camera.far = 60;
+  sun.shadow.camera.left = sun.shadow.camera.bottom = -10;
+  sun.shadow.camera.right = sun.shadow.camera.top = 10;
+  sun.shadow.bias = -0.001; sun.shadow.normalBias = 0.02;
+  scene.add(sun);
 
-  const fillLight = new THREE.PointLight(0x4466aa, 0.6, 20);
-  fillLight.position.set(-5, 3, -3);
-  scene.add(fillLight);
+  const fill = new THREE.DirectionalLight(0xd0e8ff, 0.9);
+  fill.position.set(-6, 4, -4);
+  scene.add(fill);
 
-  // Ground plane
-  const groundGeo = new THREE.PlaneGeometry(30, 30);
-  const groundMat = new THREE.MeshStandardMaterial({
-    color: 0x111118,
-    roughness: 0.9,
-    metalness: 0.1
-  });
-  const ground = new THREE.Mesh(groundGeo, groundMat);
+  const rim = new THREE.PointLight(0xffd4a0, 0.5, 30);
+  rim.position.set(0, 8, -6);
+  scene.add(rim);
+
+  // Ground
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(40, 40),
+    new THREE.MeshStandardMaterial({ color: 0xe8e0d4, roughness: 0.95, metalness: 0 })
+  );
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   scene.add(ground);
 
-  // Grid
-  const grid = new THREE.GridHelper(20, 40, 0x222230, 0x16161e);
+  const grid = new THREE.GridHelper(20, 30, 0xccc4b8, 0xddd6cc);
   grid.position.y = 0.001;
   scene.add(grid);
 
-  // GLTFLoader
+  // Model state
   const loader = new THREE.GLTFLoader();
   let currentModel = null;
+  let isLoading = false;
 
-  function showLoading(show) {
+  const showLoading = show => {
     const el = document.getElementById('loading');
-    if (show) el.classList.remove('hidden');
-    else el.classList.add('hidden');
-  }
-
-  function setModelName(name) {
-    document.getElementById('model-name').textContent = name.replace('.glb', '');
-  }
+    show ? el.classList.remove('hidden') : el.classList.add('hidden');
+  };
 
   function loadModel(filename) {
+    if (isLoading) return;
+    isLoading = true;
     showLoading(true);
-    if (currentModel) {
-      scene.remove(currentModel);
-      currentModel = null;
-    }
+    if (currentModel) { scene.remove(currentModel); currentModel = null; }
 
-    const tryLoad = (path) => new Promise((resolve, reject) => {
-      loader.load(
-        path,
-        gltf => resolve(gltf),
-        undefined,
-        err => reject(err)
-      );
-    });
+    const tryLoad = path => new Promise((res, rej) =>
+      loader.load(path, res, undefined, rej)
+    );
 
-    const attempt = (paths, idx = 0) => {
-      if (idx >= paths.length) {
-        console.warn('All model paths failed, using procedural fallback');
+    const attempt = (paths, i = 0) => {
+      if (i >= paths.length) {
+        isLoading = false;
         showLoading(false);
-        loadProceduralFallback(filename);
+        loadProcedural(filename);
         return;
       }
-      tryLoad(paths[idx])
-        .then(gltf => {
-          const model = gltf.scene;
-          model.traverse(child => {
-            if (child.isMesh) {
-              child.castShadow = true;
-              child.receiveShadow = true;
-            }
-          });
-
-          // Center + fit
-          const box = new THREE.Box3().setFromObject(model);
-          const center = box.getCenter(new THREE.Vector3());
-          const size = box.getSize(new THREE.Vector3());
-          const maxDim = Math.max(size.x, size.y, size.z);
-          const scale = 2 / maxDim;
-          model.scale.setScalar(scale);
-          model.position.sub(center.multiplyScalar(scale));
-          const boxAfter = new THREE.Box3().setFromObject(model);
-          model.position.y -= boxAfter.min.y;
-
-          scene.add(model);
-          currentModel = model;
-
-          camera.position.set(3, 2, 4);
-          controls.target.set(0, size.y * scale * 0.4, 0);
-          controls.update();
-          setModelName(filename);
-          showLoading(false);
-        })
-        .catch(() => attempt(paths, idx + 1));
+      tryLoad(paths[i]).then(gltf => {
+        const model = gltf.scene;
+        model.traverse(c => {
+          if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; }
+        });
+        const box    = new THREE.Box3().setFromObject(model);
+        const center = box.getCenter(new THREE.Vector3());
+        const size   = box.getSize(new THREE.Vector3());
+        const scale  = 2 / Math.max(size.x, size.y, size.z);
+        model.scale.setScalar(scale);
+        model.position.sub(center.multiplyScalar(scale));
+        const b2 = new THREE.Box3().setFromObject(model);
+        model.position.y -= b2.min.y;
+        scene.add(model); currentModel = model;
+        const h = size.y * scale;
+        camera.position.set(3.5, h * 0.9, 4.5);
+        controls.target.set(0, h * 0.4, 0);
+        controls.update();
+        document.getElementById('model-name').textContent = filename.replace('.glb','');
+        isLoading = false; showLoading(false);
+      }).catch(() => attempt(paths, i + 1));
     };
 
     attempt([`models/${filename}`, `models/default.glb`]);
   }
 
-  function loadProceduralFallback(filename) {
-    // Generate a simple procedural mesh based on the model name
-    let geometry, color;
-    const name = filename.toLowerCase();
+  function loadProcedural(filename) {
+    const name  = filename.toLowerCase();
+    const group = new THREE.Group();
+    const m     = (c, r=0.75) => new THREE.MeshStandardMaterial({ color:c, roughness:r, metalness:0.02 });
+    const add   = (geo, mat, x=0, y=0, z=0) => {
+      const o = new THREE.Mesh(geo, mat);
+      o.position.set(x,y,z); o.castShadow = o.receiveShadow = true;
+      group.add(o);
+    };
 
     if (name.includes('table')) {
-      // Table: top slab + 4 legs
-      const group = new THREE.Group();
-      const topGeo = new THREE.BoxGeometry(2, 0.08, 1);
-      const topMat = new THREE.MeshStandardMaterial({ color: 0x8B5E3C, roughness: 0.7, metalness: 0.05 });
-      const top = new THREE.Mesh(topGeo, topMat);
-      top.position.y = 0.76;
-      top.castShadow = top.receiveShadow = true;
-      group.add(top);
-      const legMat = new THREE.MeshStandardMaterial({ color: 0x5C3A1E, roughness: 0.8 });
-      [[-0.85, -0.4], [-0.85, 0.4], [0.85, -0.4], [0.85, 0.4]].forEach(([x, z]) => {
-        const legGeo = new THREE.BoxGeometry(0.06, 0.74, 0.06);
-        const leg = new THREE.Mesh(legGeo, legMat);
-        leg.position.set(x, 0.37, z);
-        leg.castShadow = true;
-        group.add(leg);
-      });
-      scene.add(group);
-      currentModel = group;
+      add(new THREE.BoxGeometry(2, 0.08, 1), m(0x8B5E3C), 0, 0.76, 0);
+      [[-0.85,-0.4],[-0.85,0.4],[0.85,-0.4],[0.85,0.4]].forEach(([x,z]) =>
+        add(new THREE.BoxGeometry(0.07,0.74,0.07), m(0x5C3A1E), x, 0.37, z)
+      );
     } else if (name.includes('chair')) {
-      const group = new THREE.Group();
-      const mat = new THREE.MeshStandardMaterial({ color: 0x6B4C2A, roughness: 0.75 });
-      // seat
-      const seat = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.06, 0.6), mat);
-      seat.position.y = 0.46; seat.castShadow = seat.receiveShadow = true; group.add(seat);
-      // back
-      const back = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.7, 0.05), mat);
-      back.position.set(0, 0.84, -0.275); back.castShadow = true; group.add(back);
-      // legs
-      [[-0.25,-0.25],[0.25,-0.25],[-0.25,0.25],[0.25,0.25]].forEach(([x,z]) => {
-        const l = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.44, 0.05), mat);
-        l.position.set(x, 0.22, z); l.castShadow = true; group.add(l);
-      });
-      scene.add(group); currentModel = group;
+      const w = m(0x7B5C35);
+      add(new THREE.BoxGeometry(0.62,0.07,0.62), w, 0, 0.46, 0);
+      add(new THREE.BoxGeometry(0.62,0.72,0.06), m(0x6a4f2e), 0, 0.84, -0.28);
+      [[-0.25,-0.25],[0.25,-0.25],[-0.25,0.25],[0.25,0.25]].forEach(([x,z]) =>
+        add(new THREE.BoxGeometry(0.055,0.44,0.055), w, x, 0.22, z)
+      );
     } else if (name.includes('bed')) {
-      const group = new THREE.Group();
-      const mat = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.8 });
-      const frameMat = new THREE.MeshStandardMaterial({ color: 0x5C2D0A, roughness: 0.9 });
-      // base
-      const base = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.25, 2.2), mat);
-      base.position.y = 0.25; base.castShadow = base.receiveShadow = true; group.add(base);
-      // mattress
-      const mattress = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.22, 2.0), new THREE.MeshStandardMaterial({color:0xf0e8dc, roughness:0.95}));
-      mattress.position.y = 0.49; mattress.receiveShadow = true; group.add(mattress);
-      // headboard
-      const head = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.9, 0.1), frameMat);
-      head.position.set(0, 0.7, -1.05); head.castShadow = true; group.add(head);
-      scene.add(group); currentModel = group;
+      add(new THREE.BoxGeometry(1.7,0.26,2.3), m(0x9B6030), 0, 0.25, 0);
+      add(new THREE.BoxGeometry(1.58,0.22,2.1), m(0xf4ede3,0.95), 0, 0.49, 0);
+      add(new THREE.BoxGeometry(1.7,0.95,0.1), m(0x6B3A18), 0, 0.72, -1.1);
+      add(new THREE.BoxGeometry(0.65,0.1,0.45), m(0xfefaf6,0.98), -0.35, 0.62, -0.75);
+      add(new THREE.BoxGeometry(0.65,0.1,0.45), m(0xfefaf6,0.98),  0.35, 0.62, -0.75);
     } else if (name.includes('sofa')) {
-      const group = new THREE.Group();
-      const mat = new THREE.MeshStandardMaterial({ color: 0x556688, roughness: 0.9 });
-      const base = new THREE.Mesh(new THREE.BoxGeometry(2, 0.4, 0.8), mat);
-      base.position.y = 0.2; base.castShadow = base.receiveShadow = true; group.add(base);
-      const back = new THREE.Mesh(new THREE.BoxGeometry(2, 0.6, 0.15), mat);
-      back.position.set(0, 0.7, -0.32); back.castShadow = true; group.add(back);
-      [-0.9, 0.9].forEach(x => {
-        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.5, 0.8), mat);
-        arm.position.set(x, 0.45, 0); arm.castShadow = true; group.add(arm);
-      });
-      scene.add(group); currentModel = group;
+      const fab = m(0x7a8899);
+      add(new THREE.BoxGeometry(2.2,0.42,0.88), fab, 0, 0.21, 0);
+      add(new THREE.BoxGeometry(2.2,0.62,0.16), fab, 0, 0.72, -0.36);
+      [-1.02,1.02].forEach(x => add(new THREE.BoxGeometry(0.16,0.52,0.88), fab, x, 0.47, 0));
     } else {
-      // generic box
-      const geo = new THREE.BoxGeometry(1, 1, 1);
-      const mat = new THREE.MeshStandardMaterial({ color: 0x445566, roughness: 0.6, metalness: 0.3 });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.y = 0.5; mesh.castShadow = mesh.receiveShadow = true;
-      scene.add(mesh); currentModel = mesh;
+      // No plain cube — use a nice pedestal + sphere shape for unknowns
+      add(new THREE.CylinderGeometry(0.5, 0.55, 0.9, 32), m(0x8899aa), 0, 0.45, 0);
+      add(new THREE.SphereGeometry(0.38, 32, 32), m(0xaabbcc,0.5), 0, 1.28, 0);
     }
 
-    camera.position.set(3, 2, 4);
+    scene.add(group); currentModel = group;
+    camera.position.set(3.5, 2, 4.5);
     controls.target.set(0, 0.5, 0);
     controls.update();
-    setModelName(filename);
+    document.getElementById('model-name').textContent = filename.replace('.glb','');
     showLoading(false);
   }
 
-  // Panel buttons
-  document.querySelectorAll('.model-btn').forEach(btn => {
+  // Button wiring
+  function setActive(model) {
+    document.querySelectorAll('.model-btn, .mobile-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll(`[data-model="${model}"]`).forEach(b => b.classList.add('active'));
+  }
+
+  document.querySelectorAll('.model-btn, .mobile-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      setActive(btn.dataset.model);
       loadModel(btn.dataset.model);
     });
   });
 
-  // Initial model
-  const initialModel = embedModel || 'default.glb';
-  loadModel(initialModel);
-  const activeBtn = document.querySelector(`.model-btn[data-model="${initialModel}"]`);
-  if (activeBtn) activeBtn.classList.add('active');
+  // Initial load
+  if (embedModel) {
+    loadModel(embedModel);
+    setActive(embedModel);
+  } else {
+    // Studio opens with bed (first item) — no empty cube
+    loadModel('bed1.glb');
+    setActive('bed1.glb');
+  }
 
   // Resize
-  window.addEventListener('resize', () => {
+  const onResize = () => {
     camera.aspect = W() / H();
     camera.updateProjectionMatrix();
     renderer.setSize(W(), H());
-  });
+  };
+  window.addEventListener('resize', onResize);
+  new ResizeObserver(onResize).observe(container);
 
   // Animate
-  function animate() {
+  (function animate() {
     requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
-  }
-  animate();
+  })();
 }
 
 init();
