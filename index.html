@@ -2,32 +2,79 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>3D Product Showcase</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Luxe | 3D Collection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 40px; background: #fff; text-align: center; }
-        .grid { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 50px; }
-        .card { border: 1px solid #eee; border-radius: 16px; overflow: hidden; width: 450px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-        iframe { width: 100%; height: 400px; border: none; }
-        .info { padding: 20px; background: #fff; border-top: 1px solid #f0f0f0; }
-        h1 { font-weight: 300; font-size: 2.5rem; }
+        :root { --accent: #1a1a1a; --bg: #ffffff; --muted: #666; }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--accent); }
+        
+        /* Hero Section */
+        header { padding: 100px 20px 60px; text-align: center; }
+        h1 { font-family: 'Playfair Display', serif; font-size: 3.5rem; margin: 0; letter-spacing: -1px; }
+        header p { color: var(--muted); font-size: 1.1rem; max-width: 600px; margin: 20px auto; line-height: 1.6; }
+
+        /* Showcase Grid */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 40px 100px; }
+        .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        
+        .product-card { background: #f9f9f9; border-radius: 4px; overflow: hidden; transition: 0.4s ease; }
+        .product-card:hover { background: #f0f0f0; }
+        
+        /* The Embed */
+        .viewer-container { width: 100%; height: 500px; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        .product-info { padding: 30px; text-align: left; }
+        .product-info span { text-transform: uppercase; font-size: 0.75rem; letter-spacing: 2px; color: var(--muted); font-weight: 600; }
+        .product-info h2 { margin: 10px 0; font-family: 'Playfair Display', serif; font-size: 1.8rem; }
+        
+        .btn { 
+            display: inline-block; margin-top: 15px; padding: 12px 24px; 
+            border: 1px solid var(--accent); color: var(--accent); 
+            text-decoration: none; font-size: 0.8rem; font-weight: 600; 
+            text-transform: uppercase; transition: 0.3s;
+        }
+        .btn:hover { background: var(--accent); color: white; }
+
+        @media (max-width: 900px) { .product-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
 
-    <h1>Interactive Collection</h1>
-    <div class="grid">
-        <div class="card">
-            <iframe src="viewer.html?model=Chair.glb&hideUI=true"></iframe>
-            <div class="info"><h2>Chair (From File)</h2></div>
-        </div>
+    <header>
+        <span>COLLECTION 2026</span>
+        <h1>Digital Craftsmanship</h1>
+        <p>Explore our latest furniture concepts through high-fidelity interactive 3D models. Precision engineering meets timeless design.</p>
+    </header>
 
-        <div class="card">
-            <iframe src="viewer.html?model=Table.glb&hideUI=true"></iframe>
-            <div class="info"><h2>Table (Auto-Generated)</h2></div>
+    <div class="container">
+        <div class="product-grid">
+            
+            <div class="product-card">
+                <div class="viewer-container">
+                    <iframe src="viewer.html?model=Chair.glb"></iframe>
+                </div>
+                <div class="product-info">
+                    <span>Furniture</span>
+                    <h2>The Silhouette Chair</h2>
+                    <a href="#" class="btn">View Details</a>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="viewer-container">
+                    <iframe src="viewer.html?model=Concept.glb"></iframe>
+                </div>
+                <div class="product-info">
+                    <span>Experimental</span>
+                    <h2>Minimalist Worktop</h2>
+                    <a href="#" class="btn">View Details</a>
+                </div>
+            </div>
+
         </div>
     </div>
-
-    <p style="margin-top: 40px;"><a href="viewer.html">Open Full Viewport</a></p>
 
 </body>
 </html>
