@@ -1,158 +1,572 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEURAL CORE | 3D ARCHIVE</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --glow: #00f2ff;
-            --accent: #ff00ff;
-            --glass: rgba(255, 255, 255, 0.03);
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FORM — 3D Product Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --gold: #c8a96e;
+      --gold-light: #e2c99a;
+      --bg: #07070c;
+      --surface: #0e0e18;
+      --border: rgba(255,255,255,0.06);
+      --text: rgba(255,255,255,0.85);
+      --muted: rgba(255,255,255,0.35);
+    }
 
-        body {
-            margin: 0;
-            background: #020202;
-            color: #fff;
-            font-family: 'Rajdhani', sans-serif;
-            overflow-x: hidden;
-        }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-        /* Moving Nebula Background */
-        body::before {
-            content: "";
-            position: fixed;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle at center, #0a001a 0%, #020202 80%);
-            z-index: -1;
-            animation: rotateBg 30s linear infinite;
-        }
+    html { scroll-behavior: smooth; }
 
-        @keyframes rotateBg { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
 
-        header { padding: 100px 20px; text-align: center; }
+    /* ── Noise overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 9999;
+    }
 
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(2.5rem, 8vw, 4.5rem);
-            margin: 0;
-            background: linear-gradient(90deg, #00f2ff, #ff00ff, #00f2ff);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientText 4s linear infinite;
-            letter-spacing: -2px;
-        }
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 60px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(7,7,12,0.7);
+      backdrop-filter: blur(20px);
+    }
 
-        @keyframes gradientText { to { background-position: 200% center; } }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      letter-spacing: 0.12em;
+      color: var(--gold);
+      text-decoration: none;
+    }
 
-        header p { color: #555; letter-spacing: 5px; text-transform: uppercase; font-size: 0.9rem; margin-top: 10px; }
+    .nav-links {
+      display: flex;
+      gap: 40px;
+      list-style: none;
+    }
 
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-            padding: 0 40px 100px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
-            gap: 50px;
-        }
+    .nav-links a {
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
 
-        /* Glassmorphism Card */
-        .glass-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
-            overflow: hidden;
-            transition: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+    .nav-links a:hover { color: var(--text); }
 
-        .glass-card:hover {
-            border-color: var(--glow);
-            box-shadow: 0 0 40px rgba(0, 242, 255, 0.15);
-            transform: translateY(-10px);
-        }
+    .nav-cta {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--bg);
+      background: var(--gold);
+      padding: 10px 24px;
+      border-radius: 2px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .nav-cta:hover { background: var(--gold-light); }
 
-        .viewer-box { 
-            width: 100%; height: 480px; 
-            background: radial-gradient(circle at center, #080808, #020202);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
-        }
-        iframe { width: 100%; height: 100%; border: none; }
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 160px 40px 80px;
+      position: relative;
+      overflow: hidden;
+    }
 
-        .card-content { padding: 35px; }
+    .hero-bg-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 60%, rgba(200,169,110,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
 
-        .card-content h3 { 
-            font-family: 'Orbitron'; 
-            font-size: 1.4rem; 
-            margin: 0 0 10px; 
-            color: var(--glow); 
-            text-shadow: 0 0 10px rgba(0,242,255,0.3);
-        }
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.2s forwards;
+    }
 
-        .card-content p { color: #888; text-transform: none; letter-spacing: 0; line-height: 1.6; margin-bottom: 25px; }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(52px, 8vw, 110px);
+      line-height: 1.0;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.4s forwards;
+    }
 
-        /* Glass Button */
-        .glass-btn {
-            display: inline-block;
-            padding: 14px 35px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #fff;
-            text-decoration: none;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.7rem;
-            letter-spacing: 3px;
-            border-radius: 4px;
-            transition: 0.3s;
-        }
+    .hero-title em {
+      font-style: italic;
+      color: var(--gold);
+    }
 
-        .glass-btn:hover {
-            background: var(--glow);
-            color: #000;
-            box-shadow: 0 0 25px var(--glow);
-            border-color: var(--glow);
-        }
+    .hero-sub {
+      max-width: 520px;
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 48px;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.6s forwards;
+    }
 
-        @media (max-width: 600px) { 
-            .container { grid-template-columns: 1fr; padding: 0 20px; }
-            h1 { font-size: 2.8rem; }
-        }
-    </style>
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.8s forwards;
+    }
+
+    .btn-primary {
+      background: var(--gold);
+      color: var(--bg);
+      padding: 14px 36px;
+      font-size: 12px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: all 0.25s;
+    }
+    .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+    .btn-ghost {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 14px 24px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      transition: all 0.25s;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      animation: fadeUp 1s 1.2s forwards;
+    }
+    .hero-scroll span { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--gold), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+    @keyframes scrollPulse { 0%,100%{opacity:0.3;transform:scaleY(1)} 50%{opacity:1;transform:scaleY(1.2)} }
+
+    /* ── SECTION ── */
+    section {
+      padding: 120px 60px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 64px;
+      padding-bottom: 32px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 400;
+      line-height: 1.1;
+    }
+
+    .section-desc {
+      max-width: 340px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    /* ── VIEWER GRID ── */
+    .viewer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+
+    .viewer-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .viewer-card:hover {
+      border-color: rgba(200,169,110,0.2);
+      transform: translateY(-2px);
+    }
+
+    .viewer-frame {
+      position: relative;
+      height: 480px;
+      background: #080810;
+    }
+
+    .viewer-frame iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .viewer-badge {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(200,169,110,0.15);
+      border: 1px solid rgba(200,169,110,0.3);
+      color: var(--gold);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 2px;
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+    }
+
+    .viewer-info {
+      padding: 24px 28px 28px;
+      border-top: 1px solid var(--border);
+    }
+
+    .viewer-label {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .viewer-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+
+    .viewer-meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .viewer-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      text-decoration: none;
+      transition: gap 0.2s;
+    }
+    .viewer-link:hover { gap: 12px; }
+    .viewer-link svg { width: 14px; height: 14px; }
+
+    /* ── FEATURES ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 80px;
+    }
+
+    .feature-item {
+      background: var(--bg);
+      padding: 48px 36px;
+      transition: background 0.2s;
+    }
+    .feature-item:hover { background: var(--surface); }
+
+    .feature-icon {
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    .feature-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 400;
+      margin-bottom: 12px;
+    }
+
+    .feature-text {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    /* ── CTA BAND ── */
+    .cta-band {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 100px 60px;
+      text-align: center;
+    }
+
+    .cta-band .section-title { margin-bottom: 20px; }
+    .cta-band .section-title em { font-style: italic; color: var(--gold); }
+    .cta-band p { color: var(--muted); max-width: 440px; margin: 0 auto 40px; font-size: 15px; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 48px 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+    }
+
+    footer .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 16px;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+    }
+
+    footer p {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Intersection observer targets */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      nav { padding: 20px 24px; }
+      .nav-links, .nav-cta { display: none; }
+      section { padding: 80px 24px; }
+      .section-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .viewer-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
 </head>
 <body>
 
-    <header>
-        <p>Archive // Protocol 77</p>
-        <h1>NEURAL CORE</h1>
-    </header>
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">FORM</a>
+  <ul class="nav-links">
+    <li><a href="#showcase">Showcase</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="viewer.html">Open Viewer</a></li>
+  </ul>
+  <a class="nav-cta" href="viewer.html">Launch Studio →</a>
+</nav>
 
-    <div class="container">
-        <div class="glass-card">
-            <div class="viewer-box">
-                <iframe src="viewer.html?model=bed1.glb"></iframe>
-            </div>
-            <div class="card-content">
-                <h3>STASIS UNIT B1</h3>
-                <p>Advanced rest-chamber featuring bio-synthetic comfort layers and integrated neural-sync capabilities.</p>
-                <a href="#" class="glass-btn">INITIALIZE</a>
-            </div>
-        </div>
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg-glow"></div>
+  <p class="hero-eyebrow">3D Product Studio</p>
+  <h1 class="hero-title">Products in<br><em>three dimensions.</em></h1>
+  <p class="hero-sub">Embed photorealistic 3D models directly into your storefront. Let customers rotate, inspect, and connect with every piece.</p>
+  <div class="hero-actions">
+    <a href="#showcase" class="btn-primary">View Showcase</a>
+    <a href="viewer.html" class="btn-ghost">Open Full Viewer</a>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</div>
 
-        <div class="glass-card">
-            <div class="viewer-box">
-                <iframe src="viewer.html?model=Table.glb"></iframe>
-            </div>
-            <div class="card-content">
-                <h3>VIRTUAL SURFACE</h3>
-                <p>Multi-dimensional work platform designed for high-density data visualization and tactile interaction.</p>
-                <a href="#" class="glass-btn">INITIALIZE</a>
-            </div>
-        </div>
+<!-- SHOWCASE -->
+<section id="showcase">
+  <div class="section-header reveal">
+    <div>
+      <p class="section-eyebrow">Embedded Viewer</p>
+      <h2 class="section-title">Explore the<br>Collection</h2>
+    </div>
+    <p class="section-desc">Each piece rendered in real-time 3D. Rotate freely, zoom to inspect details — every angle considered.</p>
+  </div>
+
+  <div class="viewer-grid">
+    <!-- Bed model (from models/ folder) -->
+    <div class="viewer-card reveal">
+      <div class="viewer-frame">
+        <iframe
+          src="viewer.html?model=bed1.glb&embed=1"
+          title="Bed 3D Viewer"
+          allowfullscreen
+          loading="lazy">
+        </iframe>
+        <div class="viewer-badge">Interactive · 3D</div>
+      </div>
+      <div class="viewer-info">
+        <p class="viewer-label">Bedroom Collection</p>
+        <h3 class="viewer-name">Lune Platform Bed</h3>
+        <p class="viewer-meta">Solid walnut frame · Hand-stitched upholstery</p>
+        <a class="viewer-link" href="viewer.html?model=bed1.glb&embed=1" target="_blank">
+          Open in viewer
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M7 17L17 7M17 7H7M17 7v10"/>
+          </svg>
+        </a>
+      </div>
     </div>
 
+    <!-- Table model (procedurally generated) -->
+    <div class="viewer-card reveal" style="transition-delay:0.15s">
+      <div class="viewer-frame">
+        <iframe
+          src="viewer.html?model=table.glb&embed=1"
+          title="Table 3D Viewer"
+          allowfullscreen
+          loading="lazy">
+        </iframe>
+        <div class="viewer-badge">Interactive · 3D</div>
+      </div>
+      <div class="viewer-info">
+        <p class="viewer-label">Dining Collection</p>
+        <h3 class="viewer-name">Arc Dining Table</h3>
+        <p class="viewer-meta">White oak top · Blackened steel base</p>
+        <a class="viewer-link" href="viewer.html?model=table.glb&embed=1" target="_blank">
+          Open in viewer
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M7 17L17 7M17 7H7M17 7v10"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="features-grid reveal">
+    <div class="feature-item">
+      <div class="feature-icon">⟳</div>
+      <h4 class="feature-title">360° Rotation</h4>
+      <p class="feature-text">Orbit controls with smooth damping. Auto-rotate on load. Every angle, every detail — on demand.</p>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">◎</div>
+      <h4 class="feature-title">Cinematic Lighting</h4>
+      <p class="feature-text">Directional key light, hemisphere fill, ACES tonemapping. Soft shadow casting on a ground plane.</p>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">⧉</div>
+      <h4 class="feature-title">Embeddable</h4>
+      <p class="feature-text">Drop a single iframe into any page. Panel hidden, model specified — seamless integration anywhere.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-band" id="features">
+  <h2 class="section-title">Ready to explore<br><em>every angle?</em></h2>
+  <p>Open the full studio and browse the complete model library with the interactive panel.</p>
+  <a class="btn-primary" href="viewer.html">Launch the Studio</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="logo">FORM</span>
+  <p>3D Product Studio &mdash; Built with Three.js</p>
+</footer>
+
+<script>
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  reveals.forEach(el => observer.observe(el));
+</script>
 </body>
 </html>
