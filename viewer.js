@@ -1,101 +1,149 @@
-// === THREE.js Scene Setup ===
-const container = document.getElementById('viewer-container');
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xf8f8f8);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Viewer Core</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #f4f4f4; font-family: 'Segoe UI', sans-serif; }
+        #panel { 
+            position: absolute; top: 20px; left: 20px; 
+            background: rgba(255,255,255,0.9); padding: 15px; 
+            border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); 
+            z-index: 10; width: 150px; border: 1px solid #ddd;
+        }
+        h3 { margin-top: 0; font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        button { 
+            display: block; width: 100%; margin: 8px 0; padding: 10px; 
+            cursor: pointer; border: 1px solid #eee; border-radius: 6px; 
+            background: white; transition: all 0.2s; font-weight: 500;
+        }
+        button:hover { background: #007bff; color: white; border-color: #007bff; }
+        .hidden { display: none !important; }
+        #loader { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 12px; color: #999; pointer-events: none;
+        }
+    </style>
+</head>
+<body>
 
-const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
-camera.position.set(0,2,5);
+<div id="loader">Loading 3D Workspace...</div>
 
-const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(container.clientWidth, container.clientHeight);
-renderer.shadowMap.enabled = true;
-container.appendChild(renderer.domElement);
+<div id="panel">
+    <h3>Products</h3>
+    <button onclick="loadModel('chair.glb')">Chair</button>
+    <button onclick="loadModel('table.glb')">Table</button>
+    <button onclick="loadModel('sofa.glb')">Sofa</button>
+    <button onclick="loadModel('bed.glb')">Bed</button>
+</div>
 
-// Lights
-const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
-hemiLight.position.set(0,20,0);
-scene.add(hemiLight);
+<script type="importmap">
+    { "imports": { 
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js", 
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" 
+    } }
+</script>
 
-const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-dirLight.position.set(5,10,5);
-dirLight.castShadow = true;
-scene.add(dirLight);
+<script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// Ground
-const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(50,50),
-    new THREE.ShadowMaterial({opacity:0.4})
-);
-ground.rotation.x = -Math.PI/2;
-ground.receiveShadow = true;
-scene.add(ground);
+    let scene, camera, renderer, controls, currentModel;
+    const loader = new GLTFLoader();
+    const modelPath = './models/';
+    const defaultModel = 'default.glb';
 
-// Controls
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableZoom = true;
-controls.autoRotate = true;
-controls.autoRotateSpeed = 1;
+    // Parse URL Params
+    const params = new URLSearchParams(window.location.search);
+    const modelToLoad = params.get('model') || defaultModel;
+    if (params.get('hideUI')) document.getElementById('panel').classList.add('hidden');
 
-// Loader
-const loader = new THREE.GLTFLoader();
-let currentModel = null;
+    init();
+    loadModel(modelToLoad);
+    animate();
 
-// Models array for demo panel
-const models = ['chair.glb','table.glb','sofa.glb','bed.glb'];
+    function init() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf4f4f4);
 
-// Panel DOM
-const panel = document.getElementById('panel');
-const toggleBtn = document.getElementById('togglePanel');
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(3, 2, 5);
 
-// URL param for embedding single model
-const urlParams = new URLSearchParams(window.location.search);
-const modelParam = urlParams.get('model'); // e.g., "chair.glb"
-const showPanel = !modelParam; // only show panel if no model param
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
 
-if(showPanel){
-    toggleBtn.style.display = 'block';
-    models.forEach(name=>{
-        const btn = document.createElement('button');
-        btn.textContent = name.replace('.glb','');
-        btn.onclick = ()=>loadModel(name);
-        panel.appendChild(btn);
-    });
-}
+        // Professional Lighting
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+        scene.add(hemiLight);
 
-toggleBtn.onclick = ()=> panel.style.display = panel.style.display==='none' ? 'block' : 'none';
+        const dirLight = new THREE.DirectionalLight(0xffffff, 2);
+        dirLight.position.set(5, 10, 5);
+        dirLight.castShadow = true;
+        dirLight.shadow.camera.top = 2;
+        dirLight.shadow.camera.bottom = -2;
+        dirLight.shadow.camera.left = -2;
+        dirLight.shadow.camera.right = 2;
+        dirLight.shadow.mapSize.set(1024, 1024);
+        scene.add(dirLight);
 
-// Function to load a model
-function loadModel(name){
-    const path = `models/${name}`;
-    loader.load(path, gltf=>{
-        if(currentModel) scene.remove(currentModel);
-        currentModel = gltf.scene;
-        currentModel.traverse(c=>{
-            if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; }
+        // Ground Plane for Shadows
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.ShadowMaterial({ opacity: 0.1 }));
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.receiveShadow = true;
+        scene.add(mesh);
+
+        // Orbit Controls
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+
+        window.addEventListener('resize', onWindowResize);
+    }
+
+    window.loadModel = function(fileName) {
+        document.getElementById('loader').classList.remove('hidden');
+        if (currentModel) scene.remove(currentModel);
+
+        loader.load(`${modelPath}${fileName}`, (gltf) => {
+            currentModel = gltf.scene;
+            currentModel.traverse(child => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+            
+            // Center model
+            const box = new THREE.Box3().setFromObject(currentModel);
+            const center = box.getCenter(new THREE.Vector3());
+            currentModel.position.sub(center);
+            
+            scene.add(currentModel);
+            document.getElementById('loader').classList.add('hidden');
+        }, undefined, (error) => {
+            console.error("Load failed, falling back...", error);
+            if (fileName !== defaultModel) loadModel(defaultModel);
         });
-        currentModel.position.set(0,0,0);
-        scene.add(currentModel);
-    }, undefined, error=>{
-        console.error(`Failed to load ${name}, loading default model.`);
-        if(name!=='default.glb') loadModel('default.glb');
-    });
-}
+    }
 
-// Load requested model or default
-if(modelParam) loadModel(modelParam);
-else loadModel('default.glb');
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
 
-// Animate
-function animate(){
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-}
-animate();
-
-// Handle resize
-window.addEventListener('resize', ()=>{
-    camera.aspect = container.clientWidth / container.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
-});
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+</script>
+</body>
+</html>
