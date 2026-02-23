@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lune — Arc Dining Table</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cream: #f8f4ef;
+      --white: #ffffff;
+      --border: #e8e2d8;
+      --text: #1a1410;
+      --muted: #888070;
+      --accent: #9a6c30;
+      --accent-light: #c8903a;
+      --gold: #c8a96e;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── STORE NAV ── */
+    .store-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 64px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      letter-spacing: 0.15em;
+      font-weight: 500;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .nav-icon {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 18px;
+      padding: 4px;
+      position: relative;
+    }
+    .cart-count {
+      position: absolute;
+      top: -4px; right: -6px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 600;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 14px 40px;
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .breadcrumb a { color: var(--muted); text-decoration: none; }
+    .breadcrumb a:hover { color: var(--text); }
+    .breadcrumb span { opacity: 0.5; }
+
+    /* ── PRODUCT LAYOUT ── */
+    .product-wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: 1fr 460px;
+      gap: 64px;
+      align-items: start;
+    }
+
+    /* ── 3D VIEWER SECTION ── */
+    .viewer-section {
+      position: sticky;
+      top: 80px;
+    }
+
+    .viewer-main {
+      background: #f0ebe4;
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .viewer-iframe-wrap {
+      height: 520px;
+      position: relative;
+    }
+    .viewer-iframe-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .viewer-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 2px;
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .viewer-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: #5cb85c;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .viewer-fullscreen {
+      position: absolute;
+      top: 14px; right: 14px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 11px;
+      padding: 5px 12px;
+      border-radius: 2px;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      text-decoration: none;
+      letter-spacing: 0.08em;
+      transition: color 0.2s;
+    }
+    .viewer-fullscreen:hover { color: var(--text); }
+
+    .viewer-thumbs {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid var(--border);
+      background: var(--white);
+    }
+
+    .thumb {
+      width: 72px; height: 72px;
+      border-radius: 3px;
+      border: 2px solid transparent;
+      background: #f0ebe4;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .thumb.active { border-color: var(--accent); }
+    .thumb:hover { border-color: #d4b880; }
+
+    .thumb-3d {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--cream);
+      border: 2px solid var(--accent) !important;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .thumb-3d span { font-size: 18px; }
+
+    /* ── PRODUCT INFO ── */
+    .product-info {
+      padding-top: 8px;
+    }
+
+    .product-brand {
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    .product-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 42px;
+      font-weight: 400;
+      line-height: 1.08;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+
+    .product-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    /* Rating */
+    .rating-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .stars { color: #c8903a; font-size: 14px; letter-spacing: 2px; }
+    .rating-text { font-size: 12px; color: var(--muted); }
+    .rating-text a { color: var(--muted); text-decoration: underline; }
+
+    /* Price */
+    .price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    .price-main {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 34px;
+      font-weight: 500;
+    }
+    .price-orig {
+      font-size: 16px;
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+    .price-badge {
+      background: #fdf0e0;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 2px;
+      letter-spacing: 0.08em;
+    }
+
+    /* Options */
+    .option-group { margin-bottom: 24px; }
+    .option-label {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    .option-label b { color: var(--text); font-weight: 500; }
+
+    .size-options {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .size-btn {
+      padding: 9px 18px;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      background: var(--white);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.18s;
+      font-family: inherit;
+      color: var(--text);
+    }
+    .size-btn:hover { border-color: #bbb; }
+    .size-btn.active { border-color: var(--text); background: var(--text); color: var(--white); }
+
+    .color-options { display: flex; gap: 10px; }
+    .color-swatch {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s;
+      position: relative;
+    }
+    .color-swatch:hover { transform: scale(1.1); }
+    .color-swatch.active::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border: 2px solid var(--text);
+      border-radius: 50%;
+    }
+
+    /* Qty + Add */
+    .buy-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .qty-input {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      background: var(--white);
+    }
+    .qty-btn {
+      background: none;
+      border: none;
+      width: 40px;
+      height: 52px;
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--muted);
+      transition: color 0.15s;
+      font-family: inherit;
+    }
+    .qty-btn:hover { color: var(--text); }
+    .qty-val {
+      width: 40px;
+      text-align: center;
+      font-size: 14px;
+      border: none;
+      outline: none;
+      background: none;
+      font-family: inherit;
+    }
+
+    .btn-add {
+      flex: 1;
+      background: var(--text);
+      color: var(--white);
+      border: none;
+      border-radius: 2px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-family: inherit;
+      height: 52px;
+    }
+    .btn-add:hover { background: #333; }
+
+    .btn-wishlist {
+      width: 52px; height: 52px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      border-radius: 2px;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s;
+    }
+    .btn-wishlist:hover { border-color: #aaa; }
+
+    .btn-view-3d {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      border-radius: 2px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      font-family: inherit;
+      text-decoration: none;
+      margin-bottom: 24px;
+    }
+    .btn-view-3d:hover { background: #fdf6ec; }
+
+    /* Delivery badge */
+    .delivery-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f3fdf3;
+      border: 1px solid #c8e6c8;
+      border-radius: 2px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+    }
+    .delivery-badge .icon { font-size: 18px; }
+    .delivery-badge p { font-size: 12px; color: #4a7a4a; line-height: 1.5; }
+    .delivery-badge b { font-weight: 500; }
+
+    /* Meta details */
+    .product-meta {
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0ebe4;
+      font-size: 13px;
+    }
+    .meta-row span:first-child { color: var(--muted); }
+
+    /* ── DESCRIPTION SECTION ── */
+    .description-section {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 64px 40px;
+      border-top: 1px solid var(--border);
+    }
+
+    .desc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: start;
+    }
+
+    .desc-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .desc-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px;
+      font-weight: 400;
+      line-height: 1.15;
+      margin-bottom: 20px;
+    }
+    .desc-text {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.85;
+    }
+
+    .features-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 28px;
+    }
+    .features-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .features-list li::before {
+      content: '—';
+      color: var(--gold);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .spec-table tr { border-bottom: 1px solid var(--border); }
+    .spec-table td {
+      padding: 12px 4px;
+      font-size: 13px;
+    }
+    .spec-table td:first-child { color: var(--muted); width: 40%; }
+
+    /* ── SECOND PRODUCT (Bed) ── */
+    .second-product {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 48px 0 32px;
+    }
+
+    .second-grid {
+      display: grid;
+      grid-template-columns: 1fr 460px;
+      gap: 64px;
+      align-items: start;
+    }
+
+    /* ── FOOTER ── */
+    .store-footer {
+      background: var(--text);
+      color: rgba(255,255,255,0.5);
+      padding: 48px 40px 32px;
+    }
+    .footer-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      color: rgba(255,255,255,0.7);
+      letter-spacing: 0.15em;
+    }
+    .footer-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+    .footer-links a {
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+      text-decoration: none;
+      letter-spacing: 0.1em;
+    }
+    .footer-copy {
+      font-size: 11px;
+      opacity: 0.35;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) {
+      .product-grid, .second-grid, .desc-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .viewer-section { position: static; }
+      .product-name { font-size: 34px; }
+    }
+
+    @media (max-width: 640px) {
+      .nav-links { display: none; }
+      .nav-top, .product-wrap, .description-section, .second-product, .breadcrumb { padding-left: 20px; padding-right: 20px; }
+      .product-name { font-size: 28px; }
+      .viewer-iframe-wrap { height: 380px; }
+      .buy-row { flex-wrap: wrap; }
+      .btn-add { flex: 1 0 auto; }
+      .footer-inner { flex-direction: column; text-align: center; }
+      .footer-links { flex-wrap: wrap; justify-content: center; gap: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="store-nav">
+  <div class="nav-top">
+    <a class="nav-logo" href="#">Lune</a>
+    <ul class="nav-links">
+      <li><a href="#">New Arrivals</a></li>
+      <li><a href="#">Seating</a></li>
+      <li><a href="#">Tables</a></li>
+      <li><a href="#">Bedroom</a></li>
+      <li><a href="#">Sale</a></li>
+    </ul>
+    <div class="nav-actions">
+      <button class="nav-icon">🔍</button>
+      <button class="nav-icon">♡</button>
+      <button class="nav-icon" style="position:relative">
+        🛒 <span class="cart-count">2</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb">
+  <a href="#">Home</a> <span>›</span>
+  <a href="#">Tables</a> <span>›</span>
+  Arc Dining Table
+</div>
+
+<!-- ── PRODUCT 1: TABLE ── -->
+<div class="product-wrap">
+  <div class="product-grid">
+
+    <!-- Viewer Left -->
+    <div class="viewer-section">
+      <div class="viewer-main">
+        <div class="viewer-iframe-wrap">
+          <iframe
+            src="viewer.html?model=table.glb&embed=1"
+            title="Arc Dining Table 3D View"
+            allowfullscreen
+            loading="lazy">
+          </iframe>
+          <div class="viewer-badge">Live 3D View</div>
+          <a class="viewer-fullscreen" href="viewer.html?model=table.glb" target="_blank">⤢ Full Screen</a>
+        </div>
+        <div class="viewer-thumbs">
+          <div class="thumb thumb-3d active">
+            <span>◎</span>3D
+          </div>
+          <div class="thumb">🖼</div>
+          <div class="thumb">🖼</div>
+          <div class="thumb">🖼</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Right -->
+    <div class="product-info">
+      <p class="product-brand">Lune Collection</p>
+      <h1 class="product-name">Arc Dining<br>Table</h1>
+      <p class="product-subtitle">White oak top with blackened steel base</p>
+
+      <div class="rating-row">
+        <span class="stars">★★★★★</span>
+        <span class="rating-text">4.9 · <a href="#">128 reviews</a></span>
+      </div>
+
+      <div class="price-row">
+        <span class="price-main">$2,490</span>
+        <span class="price-orig">$3,100</span>
+        <span class="price-badge">SAVE 20%</span>
+      </div>
+
+      <!-- Size -->
+      <div class="option-group">
+        <div class="option-label">Size — <b>180 cm</b></div>
+        <div class="size-options">
+          <button class="size-btn">140 cm</button>
+          <button class="size-btn active">180 cm</button>
+          <button class="size-btn">220 cm</button>
+        </div>
+      </div>
+
+      <!-- Finish -->
+      <div class="option-group">
+        <div class="option-label">Finish — <b>Natural Oak</b></div>
+        <div class="color-options">
+          <div class="color-swatch active" style="background:#c8a97a" title="Natural Oak"></div>
+          <div class="color-swatch" style="background:#4a3728" title="Dark Walnut"></div>
+          <div class="color-swatch" style="background:#e8e4de" title="Whitened Ash"></div>
+          <div class="color-swatch" style="background:#222" title="Nero"></div>
+        </div>
+      </div>
+
+      <!-- Buy -->
+      <div class="buy-row">
+        <div class="qty-input">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <input class="qty-val" id="qty" type="text" value="1" readonly />
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+        <button class="btn-add">Add to Cart</button>
+        <button class="btn-wishlist">♡</button>
+      </div>
+
+      <a class="btn-view-3d" href="viewer.html?model=table.glb" target="_blank">
+        ◎ &nbsp;View in Full 3D Studio
+      </a>
+
+      <div class="delivery-badge">
+        <span class="icon">🚚</span>
+        <p><b>Free white-glove delivery</b> — estimated 3–5 weeks.<br>In-home assembly included.</p>
+      </div>
+
+      <div class="product-meta">
+        <div class="meta-row"><span>SKU</span><span>LNE-ARC-180-OAK</span></div>
+        <div class="meta-row"><span>Material</span><span>Solid white oak, steel</span></div>
+        <div class="meta-row"><span>Dimensions</span><span>180 × 90 × 75 cm</span></div>
+        <div class="meta-row"><span>Weight</span><span>62 kg</span></div>
+        <div class="meta-row"><span>Lead time</span><span>3–5 weeks</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DESCRIPTION -->
+<div class="description-section">
+  <div class="desc-grid">
+    <div>
+      <p class="desc-eyebrow">About this piece</p>
+      <h2 class="desc-title">Designed to gather<br>around for generations</h2>
+      <p class="desc-text">The Arc Dining Table is a study in restraint. A gently curved solid white oak top sits atop a hand-forged blackened steel base — two materials in quiet conversation, balanced by the weight of each. Rotate the model above to see every angle, joint, and finish detail before it arrives at your home.</p>
+      <ul class="features-list">
+        <li>Solid white oak, sustainably sourced from FSC-certified forests</li>
+        <li>Hand-applied oil finish, replenishable over a lifetime</li>
+        <li>Hand-forged blackened steel base with floor pads</li>
+        <li>Seats 6 comfortably at 180 cm; 8 at 220 cm</li>
+        <li>Made to order in our Copenhagen workshop</li>
+      </ul>
+    </div>
+    <div>
+      <p class="desc-eyebrow">Specifications</p>
+      <table class="spec-table">
+        <tr><td>Width</td><td>180 cm</td></tr>
+        <tr><td>Depth</td><td>90 cm</td></tr>
+        <tr><td>Height</td><td>75 cm</td></tr>
+        <tr><td>Top thickness</td><td>32 mm</td></tr>
+        <tr><td>Seats</td><td>6–8 persons</td></tr>
+        <tr><td>Top material</td><td>Solid white oak</td></tr>
+        <tr><td>Base material</td><td>Blackened mild steel</td></tr>
+        <tr><td>Finish</td><td>Hand-applied Danish oil</td></tr>
+        <tr><td>Care</td><td>Wipe clean, re-oil annually</td></tr>
+        <tr><td>Assembly</td><td>Included, in-home</td></tr>
+        <tr><td>Origin</td><td>Copenhagen, Denmark</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── PRODUCT 2: BED ── -->
+<div class="second-product">
+  <p class="section-label">You may also love</p>
+
+  <div class="second-grid">
+
+    <!-- Viewer Left -->
+    <div class="viewer-section">
+      <div class="viewer-main">
+        <div class="viewer-iframe-wrap">
+          <iframe
+            src="viewer.html?model=bed1.glb&embed=1"
+            title="Lune Platform Bed 3D View"
+            allowfullscreen
+            loading="lazy">
+          </iframe>
+          <div class="viewer-badge">Live 3D View</div>
+          <a class="viewer-fullscreen" href="viewer.html?model=bed1.glb" target="_blank">⤢ Full Screen</a>
+        </div>
+        <div class="viewer-thumbs">
+          <div class="thumb thumb-3d active"><span>◎</span>3D</div>
+          <div class="thumb">🖼</div>
+          <div class="thumb">🖼</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Right -->
+    <div class="product-info">
+      <p class="product-brand">Lune Bedroom</p>
+      <h1 class="product-name">Lune Platform<br>Bed</h1>
+      <p class="product-subtitle">Solid walnut frame with hand-stitched upholstery</p>
+
+      <div class="rating-row">
+        <span class="stars">★★★★★</span>
+        <span class="rating-text">4.8 · <a href="#">86 reviews</a></span>
+      </div>
+
+      <div class="price-row">
+        <span class="price-main">$3,890</span>
+        <span class="price-orig">$4,600</span>
+        <span class="price-badge">SAVE 15%</span>
+      </div>
+
+      <!-- Size -->
+      <div class="option-group">
+        <div class="option-label">Size — <b>King</b></div>
+        <div class="size-options">
+          <button class="size-btn">Double</button>
+          <button class="size-btn">Queen</button>
+          <button class="size-btn active">King</button>
+          <button class="size-btn">Super King</button>
+        </div>
+      </div>
+
+      <!-- Upholstery -->
+      <div class="option-group">
+        <div class="option-label">Upholstery — <b>Pebble Linen</b></div>
+        <div class="color-options">
+          <div class="color-swatch active" style="background:#d4cbbf" title="Pebble Linen"></div>
+          <div class="color-swatch" style="background:#8a9baa" title="Slate Blue"></div>
+          <div class="color-swatch" style="background:#c4a882" title="Camel"></div>
+          <div class="color-swatch" style="background:#3a3530" title="Charcoal"></div>
+        </div>
+      </div>
+
+      <!-- Buy -->
+      <div class="buy-row">
+        <div class="qty-input">
+          <button class="qty-btn" onclick="changeQty2(-1)">−</button>
+          <input class="qty-val" id="qty2" type="text" value="1" readonly />
+          <button class="qty-btn" onclick="changeQty2(1)">+</button>
+        </div>
+        <button class="btn-add">Add to Cart</button>
+        <button class="btn-wishlist">♡</button>
+      </div>
+
+      <a class="btn-view-3d" href="viewer.html?model=bed1.glb" target="_blank">
+        ◎ &nbsp;View in Full 3D Studio
+      </a>
+
+      <div class="delivery-badge">
+        <span class="icon">🚚</span>
+        <p><b>Free white-glove delivery</b> — estimated 4–6 weeks.<br>Frame assembly & mattress placement included.</p>
+      </div>
+
+      <div class="product-meta">
+        <div class="meta-row"><span>SKU</span><span>LNE-BED-KING-PEB</span></div>
+        <div class="meta-row"><span>Frame</span><span>Solid American walnut</span></div>
+        <div class="meta-row"><span>Upholstery</span><span>Belgian linen blend</span></div>
+        <div class="meta-row"><span>Mattress</span><span>Not included</span></div>
+        <div class="meta-row"><span>Lead time</span><span>4–6 weeks</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="store-footer">
+  <div class="footer-inner">
+    <span class="footer-logo">Lune</span>
+    <ul class="footer-links">
+      <li><a href="#">About</a></li>
+      <li><a href="#">Delivery</a></li>
+      <li><a href="#">Returns</a></li>
+      <li><a href="#">Trade Program</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+    <p class="footer-copy">© 2025 Lune Studio. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  // Qty controls
+  function changeQty(d) {
+    const el = document.getElementById('qty');
+    let v = parseInt(el.value) + d;
+    el.value = Math.max(1, v);
+  }
+  function changeQty2(d) {
+    const el = document.getElementById('qty2');
+    let v = parseInt(el.value) + d;
+    el.value = Math.max(1, v);
+  }
+
+  // Size button toggle
+  document.querySelectorAll('.size-options').forEach(group => {
+    group.querySelectorAll('.size-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  });
+
+  // Color swatch toggle
+  document.querySelectorAll('.color-options').forEach(group => {
+    group.querySelectorAll('.color-swatch').forEach(sw => {
+      sw.addEventListener('click', () => {
+        group.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+        sw.classList.add('active');
+      });
+    });
+  });
+
+  // Thumb toggle
+  document.querySelectorAll('.viewer-thumbs').forEach(group => {
+    group.querySelectorAll('.thumb').forEach(t => {
+      t.addEventListener('click', () => {
+        group.querySelectorAll('.thumb').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+      });
+    });
+  });
+</script>
+</body>
+</html>
