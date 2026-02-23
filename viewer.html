@@ -7,14 +7,15 @@
         body { margin: 0; overflow: hidden; background: #050505; }
         #loader { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-family: 'Orbitron', sans-serif; font-size: 10px; letter-spacing: 4px; 
+            font-family: sans-serif; font-size: 10px; letter-spacing: 4px; 
             color: #00f2ff; text-transform: uppercase; text-shadow: 0 0 10px #00f2ff;
+            z-index: 20;
         }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div id="loader">Initializing Neural Link...</div>
+    <div id="loader">Scanning Model...</div>
 
     <script type="importmap">
         { "imports": { 
@@ -31,7 +32,7 @@
         let scene, camera, renderer, controls, currentModel;
         const loader = new GLTFLoader();
         const params = new URLSearchParams(window.location.search);
-        const modelToLoad = params.get('model') || 'Chair.glb';
+        const modelToLoad = params.get('model') || 'bed1.glb';
 
         init();
         loadModel(modelToLoad);
@@ -40,41 +41,50 @@
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x050505);
 
-            // Add a digital grid floor
-            const grid = new THREE.GridHelper(20, 40, 0x00f2ff, 0x050505);
-            grid.material.opacity = 0.2;
+            // Digital Grid Floor
+            const grid = new THREE.GridHelper(20, 40, 0x00f2ff, 0x111111);
+            grid.material.opacity = 0.15;
             grid.material.transparent = true;
             scene.add(grid);
 
             camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 5000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
             // Cyberpunk Lighting
-            scene.add(new THREE.HemisphereLight(0x00f2ff, 0xff00ff, 0.5));
-            const p1 = new THREE.PointLight(0x00f2ff, 100); p1.position.set(5, 5, 5); scene.add(p1);
-            const p2 = new THREE.PointLight(0xff00ff, 100); p2.position.set(-5, 5, -5); scene.add(p2);
+            scene.add(new THREE.HemisphereLight(0x444444, 0x000000, 2));
+            const p1 = new THREE.PointLight(0x00f2ff, 50); p1.position.set(5, 5, 5); scene.add(p1);
+            const p2 = new THREE.PointLight(0xff00ff, 30); p2.position.set(-5, 5, -5); scene.add(p2);
 
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.5;
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
         }
 
         function loadModel(name) {
             loader.load(`./models/${name}`, 
                 (gltf) => { setupModel(gltf.scene); }, 
                 undefined, 
-                () => { setupModel(createTableFallback()); }
+                () => { setupModel(createFallback()); }
             );
         }
 
-        function createTableFallback() {
+        function createFallback() {
             const group = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({ color: 0x00f2ff, emissive: 0x00f2ff, emissiveIntensity: 0.2 });
-            const top = new THREE.Mesh(new THREE.BoxGeometry(2, 0.1, 1.2), mat);
-            top.position.y = 1; group.add(top);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x333333, emissive: 0x00f2ff, emissiveIntensity: 0.1 });
+            const top = new THREE.Mesh(new THREE.BoxGeometry(2, 0.2, 1.5), mat);
+            top.position.y = 0.5;
+            group.add(top);
             return group;
         }
 
@@ -82,11 +92,17 @@
             if (currentModel) scene.remove(currentModel);
             currentModel = obj;
             scene.add(obj);
+
+            // Auto-Frame Camera
             const box = new THREE.Box3().setFromObject(obj);
+            const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
+            obj.position.sub(center); 
+
             const maxDim = Math.max(size.x, size.y, size.z);
             const dist = maxDim / (2 * Math.tan(Math.PI * camera.fov / 360));
-            camera.position.set(dist * 1.5, dist, dist * 1.5);
+            camera.position.set(dist * 1.4, dist * 0.8, dist * 1.4);
+            controls.target.set(0, 0, 0);
             controls.update();
             document.getElementById('loader').classList.add('hidden');
         }
