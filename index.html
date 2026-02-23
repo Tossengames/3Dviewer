@@ -4,29 +4,26 @@
     <meta charset="UTF-8">
     <title>3D Product Showcase</title>
     <style>
-        body { font-family: sans-serif; padding: 50px; background: #fff; text-align: center; }
-        .showcase { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
-        .card { border: 1px solid #ddd; border-radius: 15px; overflow: hidden; width: 400px; background: #fafafa; }
+        body { font-family: sans-serif; padding: 40px; background: #fff; text-align: center; color: #333; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 900px; margin: auto; }
+        .card { border: 1px solid #eee; border-radius: 12px; overflow: hidden; background: #fdfdfd; }
         iframe { width: 100%; height: 350px; border: none; }
-        .info { padding: 15px; border-top: 1px solid #eee; background: white; }
+        h2 { font-weight: 400; font-size: 1.2rem; padding: 10px; }
     </style>
 </head>
 <body>
 
-    <h1>Product Gallery</h1>
-    <div class="showcase">
+    <h1>Interactive Catalog</h1>
+    <div class="grid">
         <div class="card">
             <iframe src="viewer.html?model=Chair.glb&hideUI=true"></iframe>
-            <div class="info"><h3>Modern Chair</h3></div>
+            <h2>Existing: Chair.glb</h2>
         </div>
-
         <div class="card">
-            <iframe src="viewer.html?model=default.glb&hideUI=true"></iframe>
-            <div class="info"><h3>Concept Design</h3></div>
+            <iframe src="viewer.html?model=AnythingElse.glb&hideUI=true"></iframe>
+            <h2>Generated Placeholder</h2>
         </div>
     </div>
-
-    <p><a href="viewer.html">Enter Full 3D Studio</a></p>
 
 </body>
 </html>
