@@ -28,14 +28,14 @@
 </head>
 <body>
 
-<div id="loader">Loading 3D Workspace...</div>
+<div id="loader">Loading...</div>
 
 <div id="panel">
     <h3>Products</h3>
-    <button onclick="loadModel('chair.glb')">Chair</button>
-    <button onclick="loadModel('table.glb')">Table</button>
-    <button onclick="loadModel('sofa.glb')">Sofa</button>
-    <button onclick="loadModel('bed.glb')">Bed</button>
+    <button onclick="loadModel('Chair.glb')">Chair</button>
+    <button onclick="loadModel('Table.glb')">Table</button>
+    <button onclick="loadModel('Sofa.glb')">Sofa</button>
+    <button onclick="loadModel('Bed.glb')">Bed</button>
 </div>
 
 <script type="importmap">
@@ -55,7 +55,6 @@
     const modelPath = './models/';
     const defaultModel = 'default.glb';
 
-    // Parse URL Params
     const params = new URLSearchParams(window.location.search);
     const modelToLoad = params.get('model') || defaultModel;
     if (params.get('hideUI')) document.getElementById('panel').classList.add('hidden');
@@ -67,42 +66,30 @@
     function init() {
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0xf4f4f4);
-
         camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(3, 2, 5);
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
-        // Professional Lighting
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
         scene.add(hemiLight);
 
         const dirLight = new THREE.DirectionalLight(0xffffff, 2);
         dirLight.position.set(5, 10, 5);
         dirLight.castShadow = true;
-        dirLight.shadow.camera.top = 2;
-        dirLight.shadow.camera.bottom = -2;
-        dirLight.shadow.camera.left = -2;
-        dirLight.shadow.camera.right = 2;
-        dirLight.shadow.mapSize.set(1024, 1024);
         scene.add(dirLight);
 
-        // Ground Plane for Shadows
-        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.ShadowMaterial({ opacity: 0.1 }));
-        mesh.rotation.x = -Math.PI / 2;
-        mesh.receiveShadow = true;
-        scene.add(mesh);
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.ShadowMaterial({ opacity: 0.1 }));
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
 
-        // Orbit Controls
         controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.autoRotate = true;
-        controls.autoRotateSpeed = 0.5;
 
         window.addEventListener('resize', onWindowResize);
     }
@@ -114,21 +101,12 @@
         loader.load(`${modelPath}${fileName}`, (gltf) => {
             currentModel = gltf.scene;
             currentModel.traverse(child => {
-                if (child.isMesh) {
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-                }
+                if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; }
             });
-            
-            // Center model
-            const box = new THREE.Box3().setFromObject(currentModel);
-            const center = box.getCenter(new THREE.Vector3());
-            currentModel.position.sub(center);
-            
             scene.add(currentModel);
             document.getElementById('loader').classList.add('hidden');
         }, undefined, (error) => {
-            console.error("Load failed, falling back...", error);
+            console.error(`Failed to load ${fileName}, reverting to ${defaultModel}`);
             if (fileName !== defaultModel) loadModel(defaultModel);
         });
     }
