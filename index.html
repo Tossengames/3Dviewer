@@ -6,18 +6,20 @@
 <title>3D Product Viewer</title>
 <link rel="stylesheet" href="style.css">
 <style>
-body { margin:0; font-family:sans-serif; }
-#viewer-container { width:100%; height:500px; }
+body { margin:0; font-family:sans-serif; background:#f8f8f8; }
+.hero { text-align:center; padding:40px 20px; }
+#viewer-container { width:100%; height:500px; position:relative; }
 #panel { position:absolute; top:10px; left:10px; background:rgba(255,255,255,0.9); padding:10px; border-radius:8px; max-width:200px; display:none; z-index:5; }
 #panel button { width:100%; margin:5px 0; }
 #togglePanel { position:absolute; top:10px; right:10px; z-index:10; padding:8px 12px; background:#007bff; color:#fff; border:none; border-radius:5px; cursor:pointer; display:none; }
+section { padding:20px; max-width:900px; margin:auto; }
 </style>
 </head>
 <body>
 
 <section class="hero">
   <h1>Show Your Products in 3D</h1>
-  <p>Rotate and inspect products in 3D — helping customers decide faster.</p>
+  <p>Rotate and inspect products in 3D — helping customers decide faster and reducing returns.</p>
 </section>
 
 <section id="demo">
@@ -35,6 +37,10 @@ body { margin:0; font-family:sans-serif; }
   </ul>
 </section>
 
+<script src="https://cdn.jsdelivr.net/npm/three@0.156.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.156.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.156.0/examples/js/controls/OrbitControls.js"></script>
 <script src="viewer.js"></script>
+
 </body>
 </html>
